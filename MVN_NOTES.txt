@@ -1,0 +1,1 @@
+mvn archetype:create -DgroupId=org.kidneyomics -DartifactId=bayesnet
