@@ -1,6 +1,6 @@
 package org.kidneyomics.bayes;
 
-public interface Distribution {
+public interface ProbabilityDistribution {
 	void normalize();
 	boolean isNormalized();
 }

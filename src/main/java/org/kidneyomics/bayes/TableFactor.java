@@ -49,6 +49,21 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 		return this.rows;
 	}
 	
+	/**
+	 * 
+	 * @param variable -- the variable to get the DiscreteValues for
+	 * @return the set of all values for Variable in this factor
+	 */
+	public Set<DiscreteValue> getVariableValuesByVariable(DiscreteVariable variable) {
+		HashSet<DiscreteValue> values = new HashSet<DiscreteValue>();
+		
+		for(Row row : rows) {
+			values.add(row.getVariableValue(variable).value());
+		}
+		
+		return values;
+	}
+	
 	public DiscreteVariable getVariableByName(String name) {
 		return scope.get(name);
 	}

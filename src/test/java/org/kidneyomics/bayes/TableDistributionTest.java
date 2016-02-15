@@ -58,11 +58,13 @@ public class TableDistributionTest {
 	public void test() {
 		TableFactor table = createGradeLetterFactor();
 		
-		assertFalse(TableDistribution.isNormalized(table));
+		assertFalse(ProbabilityDistributionUtil.isNormalized(table));
 		
-		TableDistribution dist = TableDistribution.create(table);
+		TableProbabilityDistribution dist = TableProbabilityDistribution.create(table);
+		assertNotNull(dist);
 		
-		assertTrue(TableDistribution.isNormalized(table));
+		assertTrue(ProbabilityDistributionUtil.isNormalized(table));
+		
 	}
 
 }
