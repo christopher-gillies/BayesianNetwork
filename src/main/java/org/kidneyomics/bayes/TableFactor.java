@@ -112,7 +112,10 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 		TableFactor newFactor = TableFactor.create(varSet);
 
 		//create new marginalized rows
-		HashMap<String,Row> rowMap = new HashMap<String, Row>();		
+		HashMap<String,Row> rowMap = new HashMap<String, Row>();	
+		
+		//store list of row order for visualization
+		List<Row> rowOrder = new LinkedList<Row>();
 		for(Row row : this.rows) {
 			Row possibleNewRow = row.createRowFromVariableSubset(varSet, true);
 			if(rowMap.containsKey(possibleNewRow.key())) {
@@ -120,11 +123,12 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 				newRow.addToValue(possibleNewRow.getValue());
 			} else {
 				rowMap.put(possibleNewRow.key(), possibleNewRow);
+				rowOrder.add(possibleNewRow);
 			}
 		}
 		
 		//store results
-		for(Row row : rowMap.values()) {
+		for(Row row : rowOrder) {
 			newFactor.addRow(row);
 		}
 		

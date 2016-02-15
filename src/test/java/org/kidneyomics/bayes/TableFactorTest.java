@@ -157,7 +157,6 @@ public class TableFactorTest {
 	}
 	
 	
-	
 	@Test
 	public void testProduct() {
 		HashSet<DiscreteValue> aValues = new HashSet<DiscreteValue>();
@@ -248,5 +247,157 @@ public class TableFactorTest {
 		
 		System.err.println("Factor (A,B,C) reverse order");
 		System.err.println(prod2.toString());
+		
+		assertEquals(12,prod.rows().size());
+		
+		
+		//a1
+		assertEquals(0.25, prod.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a1")),
+				DiscreteVariableValue.create(B, B.getValueByName("b1")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
+		assertEquals(0.35, prod.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a1")),
+				DiscreteVariableValue.create(B, B.getValueByName("b1")),
+				DiscreteVariableValue.create(C, C.getValueByName("c2"))
+				).get(0).getValue(),0.001);
+		
+		assertEquals(0.08, prod.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a1")),
+				DiscreteVariableValue.create(B, B.getValueByName("b2")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
+		assertEquals(0.16, prod.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a1")),
+				DiscreteVariableValue.create(B, B.getValueByName("b2")),
+				DiscreteVariableValue.create(C, C.getValueByName("c2"))
+				).get(0).getValue(),0.001);
+		
+		//a2
+		assertEquals(0.05, prod.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a2")),
+				DiscreteVariableValue.create(B, B.getValueByName("b1")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
+		assertEquals(0.07, prod.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a2")),
+				DiscreteVariableValue.create(B, B.getValueByName("b1")),
+				DiscreteVariableValue.create(C, C.getValueByName("c2"))
+				).get(0).getValue(),0.001);
+		
+		assertEquals(0.0, prod.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a2")),
+				DiscreteVariableValue.create(B, B.getValueByName("b2")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
+		assertEquals(0.0, prod.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a2")),
+				DiscreteVariableValue.create(B, B.getValueByName("b2")),
+				DiscreteVariableValue.create(C, C.getValueByName("c2"))
+				).get(0).getValue(),0.001);
+		
+		//a3
+		assertEquals(0.15, prod.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a3")),
+				DiscreteVariableValue.create(B, B.getValueByName("b1")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
+		assertEquals(0.21, prod.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a3")),
+				DiscreteVariableValue.create(B, B.getValueByName("b1")),
+				DiscreteVariableValue.create(C, C.getValueByName("c2"))
+				).get(0).getValue(),0.001);
+		
+		assertEquals(0.09, prod.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a3")),
+				DiscreteVariableValue.create(B, B.getValueByName("b2")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
+		assertEquals(0.18, prod.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a3")),
+				DiscreteVariableValue.create(B, B.getValueByName("b2")),
+				DiscreteVariableValue.create(C, C.getValueByName("c2"))
+				).get(0).getValue(),0.001);	
+		
+		
+		//Marginalize
+		HashSet<DiscreteVariable> varsToMarg = new HashSet<DiscreteVariable>();
+		varsToMarg.add(B);
+		TableFactor margeAC = (TableFactor) prod.marginalize(varsToMarg);
+		
+		System.err.println("Factor (A,B,C) marinalized over B");
+		System.err.println(margeAC.toString());
+		
+		assertEquals(6,margeAC.rows().size());
+		
+		//a1
+		assertEquals(0.33, margeAC.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a1")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
+		assertEquals(0.51, margeAC.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a1")),
+				DiscreteVariableValue.create(C, C.getValueByName("c2"))
+				).get(0).getValue(),0.001);
+		
+		//a2
+		assertEquals(0.05, margeAC.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a2")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
+		assertEquals(0.07, margeAC.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a2")),
+				DiscreteVariableValue.create(C, C.getValueByName("c2"))
+				).get(0).getValue(),0.001);
+		
+		//a3
+		assertEquals(0.24, margeAC.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a3")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
+		assertEquals(0.39, margeAC.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a3")),
+				DiscreteVariableValue.create(C, C.getValueByName("c2"))
+				).get(0).getValue(),0.001);
+		
+		
+		//reduce
+
+		TableFactor reduceABC = (TableFactor) prod.reduce(DiscreteVariableValue.create(C, C.getValueByName("c1")));
+		
+		System.err.println("Factor (A,B,C) reduced (conditioned on c1)");
+		System.err.println(reduceABC.toString());
+		
+		assertEquals(6,reduceABC.rows().size());
+		
+		
+		//a1
+		assertEquals(0.25, reduceABC.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a1")),
+				DiscreteVariableValue.create(B, B.getValueByName("b1")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
+		
+		assertEquals(0.08, reduceABC.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a1")),
+				DiscreteVariableValue.create(B, B.getValueByName("b2")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
+		//a2
+		assertEquals(0.05, reduceABC.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a2")),
+				DiscreteVariableValue.create(B, B.getValueByName("b1")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
+		
+		assertEquals(0.0, reduceABC.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a2")),
+				DiscreteVariableValue.create(B, B.getValueByName("b2")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
+		//a3
+		assertEquals(0.15, reduceABC.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a3")),
+				DiscreteVariableValue.create(B, B.getValueByName("b1")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
+		
+		assertEquals(0.09, reduceABC.getRowsByValues(false, DiscreteVariableValue.create(A, A.getValueByName("a3")),
+				DiscreteVariableValue.create(B, B.getValueByName("b2")),
+				DiscreteVariableValue.create(C, C.getValueByName("c1"))
+				).get(0).getValue(),0.001);
+		
 	}
 }
