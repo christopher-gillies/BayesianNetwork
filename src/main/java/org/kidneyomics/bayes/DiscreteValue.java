@@ -2,10 +2,10 @@ package org.kidneyomics.bayes;
 
 public class DiscreteValue implements Value {
 	
-	private final String value;
+	private final String name;
 	
 	private DiscreteValue(String value) {
-		this.value = value;
+		this.name = value;
 	}
 	
 	public static DiscreteValue create(String value) {
@@ -13,7 +13,13 @@ public class DiscreteValue implements Value {
 		return discreteValue;
 	}
 	
-	String getValue() {
-		return this.value;
+	public String getName() {
+		return this.name;
 	}
+	
+	@Override
+	public String toString() {
+		return this.name;
+	}
+	
 }

@@ -1,6 +1,6 @@
 package org.kidneyomics.bayes;
 
-public class DiscreteVariableValue implements VariableValue {
+public class DiscreteVariableValue implements VariableValue<DiscreteVariable,DiscreteValue>, Comparable<DiscreteVariableValue> {
 	
 	private final DiscreteVariable variable;
 	private final DiscreteValue value;
@@ -9,7 +9,7 @@ public class DiscreteVariableValue implements VariableValue {
 	private DiscreteVariableValue(DiscreteVariable variable, DiscreteValue value) {
 		this.value = value;
 		this.variable = variable;
-		this.key = variable.getName() + "=" + value.getValue();
+		this.key = variable.getName() + "=" + value.getName();
 	}
 	
 	public static DiscreteVariableValue create(DiscreteVariable variable, DiscreteValue value) {
@@ -18,16 +18,21 @@ public class DiscreteVariableValue implements VariableValue {
 		return varval;
 	}
 	
-	public Variable variable() {
+	public DiscreteVariable variable() {
 		return this.variable;
 	}
 
-	public Value value() {
+	public DiscreteValue value() {
 		return this.value;
 	}
 	
 	public String getKey() {
 		return key;
+	}
+	
+	@Override
+	public String toString() {
+		return getKey();
 	}
 	
 	public boolean equals(Object o) {
@@ -39,10 +44,18 @@ public class DiscreteVariableValue implements VariableValue {
 		}
 	}
 	
+	//key is the basis for the hashcode
 	@Override
 	public int hashCode() {
 		int hash = 1;
 	    hash = hash * 31 + key.hashCode();
 	    return hash;
+	}
+
+	
+	//compare keys
+	public int compareTo(DiscreteVariableValue o) {
+		DiscreteVariableValue varVal = (DiscreteVariableValue) o;
+		return this.key.compareTo(varVal.getKey());
 	}
 }
