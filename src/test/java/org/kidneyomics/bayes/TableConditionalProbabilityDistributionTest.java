@@ -63,7 +63,7 @@ public class TableConditionalProbabilityDistributionTest {
 		TableConditionalProbabilityDistribution dist = TableConditionalProbabilityDistribution.create(table,letter);
 		
 		System.err.println("CPD for Letter | Grade");
-		System.err.println(table.toString());
+		System.err.println(dist.toString());
 		
 		assertTrue(dist.isNormalized());
 

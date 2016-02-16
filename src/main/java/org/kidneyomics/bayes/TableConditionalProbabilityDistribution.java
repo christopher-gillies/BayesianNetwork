@@ -1,5 +1,6 @@
 package org.kidneyomics.bayes;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -134,8 +135,46 @@ public class TableConditionalProbabilityDistribution implements ProbabilityDistr
 		
 		
 		//loop through the printmap to print the conditional probability table
-		for(Map.Entry<String,HashMap<String,Double>> entry : printMap.entrySet()) {
+		List<String> orderOfCols = new LinkedList<String>();
+		
+		List<String> orderOfRows = new LinkedList<String>();
+		orderOfRows.addAll(printMap.keySet());
+		Collections.sort(orderOfRows);
+		
+		for(String rowKey : orderOfRows) {
+			HashMap<String,Double> columns = printMap.get(rowKey);
+			if(orderOfCols.size() == 0) {
+				orderOfCols.addAll(columns.keySet());
+				//sort
+				Collections.sort(orderOfCols);
+				
+				//print header
+				
+				//no value in first column
+				sb.append("\t");
+				Iterator<String> iter = orderOfCols.iterator();
+				while(iter.hasNext()) {
+					sb.append(iter.next());
+					if(iter.hasNext()) {
+						sb.append("\t");
+					}
+				}
+				sb.append("\n");
+			}
 			
+			//write row key
+			sb.append(rowKey);
+			sb.append("\t");
+			//write column values
+			Iterator<String> iter = orderOfCols.iterator();
+			while(iter.hasNext()) {
+				sb.append(columns.get(iter.next()));
+				if(iter.hasNext()) {
+					sb.append("\t");
+				}
+			}
+			sb.append("\n");
+		
 		}
 		
 		return sb.toString();
