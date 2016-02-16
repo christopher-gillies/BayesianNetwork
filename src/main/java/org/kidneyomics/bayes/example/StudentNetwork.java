@@ -5,19 +5,21 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.kidneyomics.bayes.BayesianNetwork;
-import org.kidneyomics.bayes.BayesianNetworkUtil;
+import org.kidneyomics.bayes.TableBayesianNetworkUtil;
 import org.kidneyomics.bayes.DiscreteValue;
 import org.kidneyomics.bayes.DiscreteVariable;
 import org.kidneyomics.bayes.DiscreteVariableValue;
 import org.kidneyomics.bayes.Row;
+import org.kidneyomics.bayes.TableBayesianNetwork;
 import org.kidneyomics.bayes.TableFactor;
 import org.kidneyomics.bayes.TableNode;
 import org.kidneyomics.bayes.TableProbabilityDistribution;
 import org.kidneyomics.graph.TopologicalSorter;
 
-public class StudentNetwork implements BayesianNetwork {
+public class StudentNetwork implements TableBayesianNetwork {
 	
 	private List<TableNode> nodes;
 	private TableFactor joint = null;
@@ -249,7 +251,7 @@ public class StudentNetwork implements BayesianNetwork {
 	}
 	
 	public List<TableNode> topologicalSort() {
-		return BayesianNetworkUtil.topologicalSort(nodes);
+		return TableBayesianNetworkUtil.topologicalSort(this);
 	}
 	
 	public TableProbabilityDistribution computeProbability(DiscreteVariable target, DiscreteVariableValue... evidences) {
@@ -296,4 +298,11 @@ public class StudentNetwork implements BayesianNetwork {
 		}
 	}
 	
+	public Set<TableFactor> factors() {
+		HashSet<TableFactor> factors = new HashSet<TableFactor>();
+		for(TableNode node : nodes) {
+			factors.add(node.factor());
+		}
+		return factors;
+	}
 }

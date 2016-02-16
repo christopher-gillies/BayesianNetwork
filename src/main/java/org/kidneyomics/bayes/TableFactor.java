@@ -13,9 +13,11 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 
 	private final Map<String,DiscreteVariable> scope;
 	private final List<Row> rows;
+	private final Set<DiscreteVariable> scopeSet;
 	
 	private TableFactor(Set<DiscreteVariable> variables) {
 		scope = new HashMap<String,DiscreteVariable>();
+		scopeSet = new HashSet<DiscreteVariable>();
 		
 		for(DiscreteVariable variable : variables) {
 			if(scope.containsKey(variable.getName())) {
@@ -23,6 +25,7 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 			}
 			
 			scope.put(variable.getName(), variable);
+			scopeSet.add(variable);
 		}
 		
 		this.rows = new LinkedList<Row>();
@@ -88,8 +91,8 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 		return scope.get(name);
 	}
 
-	public Collection<DiscreteVariable> scope() {
-		return scope.values();
+	public Set<DiscreteVariable> scope() {
+		return scopeSet;
 	}
 	
 	

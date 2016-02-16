@@ -3,23 +3,26 @@ package org.kidneyomics.bayes;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import org.kidneyomics.graph.DirectedNode;
 import org.kidneyomics.graph.EvaluationMetric;
 import org.kidneyomics.graph.UndirectedNode;
 import org.kidneyomics.graph.TopologicalSorter;
 
-public class BayesianNetworkUtil {
+public class TableBayesianNetworkUtil {
 	
 	/**
 	 * 
 	 * @param nodes from a table network
 	 * @return a graph representation of the network
 	 */
-	public static List<DirectedNode<TableNode>> createGraphFromTableNode(List<TableNode> nodes) {
+	public static List<DirectedNode<TableNode>> createGraphFromTableNode(TableBayesianNetwork network) {
+		List<TableNode> nodes = network.nodes();
 		List<DirectedNode<TableNode>> graphNodes = new LinkedList<DirectedNode<TableNode>>();
 		
 		
@@ -47,8 +50,8 @@ public class BayesianNetworkUtil {
 	}
 	
 	
-	public static List<TableNode> topologicalSort(List<TableNode> nodes) {
-		return TopologicalSorter.sort(createGraphFromTableNode(nodes));
+	public static List<TableNode> topologicalSort(TableBayesianNetwork network) {
+		return TopologicalSorter.sort(createGraphFromTableNode(network));
 	}
 	
 	
@@ -57,7 +60,8 @@ public class BayesianNetworkUtil {
 	 * @param nodes from Bayesian network
 	 * @return a list of nodes describing an undirected graph for the Bayesian network
 	 */
-	public static List<UndirectedNode<DiscreteVariable>> createUndirectedGraphFromTableNodes(List<TableNode> nodes) {
+	public static List<UndirectedNode<DiscreteVariable>> createUndirectedGraphFromTableNodes(TableBayesianNetwork network) {
+		List<TableNode> nodes = network.nodes();
 		List<UndirectedNode<DiscreteVariable>> graphNodes = new LinkedList<UndirectedNode<DiscreteVariable>>();
 		
 		//create variable --> graphNode
@@ -163,4 +167,61 @@ public class BayesianNetworkUtil {
 		
 		return order;
 	}
+	
+	
+	public static TableProbabilityDistribution sumProductVariableElimination(TableBayesianNetwork network, List<DiscreteVariable> eliminationOrder) {
+		return sumProductVariableElimination(network.factors(), eliminationOrder);
+	}
+	
+	public static TableProbabilityDistribution sumProductVariableElimination(Set<TableFactor> factors, List<DiscreteVariable> eliminationOrder) {
+		
+		for(DiscreteVariable var : eliminationOrder) {
+			//sum product eliminate
+			factors = sumProductEliminateVar(factors,var);
+		}
+		
+		//compute result product
+		Iterator<TableFactor> iter = factors.iterator();
+		TableFactor current = iter.next();
+		while(iter.hasNext()) {
+			current = (TableFactor) current.product(iter.next());
+		}
+		
+		return TableProbabilityDistribution.create(current);
+	}
+	
+	public static Set<TableFactor> sumProductEliminateVar(Set<TableFactor> factors, DiscreteVariable varToEliminate) {
+		
+		//all factors that contain variable to be eliminated in their scope
+		Set<TableFactor> factorPrime = new HashSet<TableFactor>();
+		for(TableFactor factor : factors) {
+			if(factor.scope().contains(varToEliminate)) {
+				factorPrime.add(factor);
+			}
+		}
+		
+		//Factors not in the scope of varToEliminate
+		Set<TableFactor> factorDoublePrime = new HashSet<TableFactor>();
+		for(TableFactor factor : factors) {
+			if(!factorPrime.contains(factor)) {
+				factorDoublePrime.add(factor);
+			}
+		}
+		
+		//compute product
+		Iterator<TableFactor> iter = factorPrime.iterator();
+		TableFactor tau = iter.next();
+		while(iter.hasNext()) {
+			tau = (TableFactor) tau.product(iter.next());
+		}
+		//compute sum
+		tau = (TableFactor) tau.marinalize(varToEliminate);
+		
+		//add tou to factorDoublePrime
+		factorDoublePrime.add(tau);
+		
+		return factorDoublePrime;
+		
+	}
+	
 }

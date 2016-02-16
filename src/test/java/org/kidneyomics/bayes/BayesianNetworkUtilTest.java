@@ -45,7 +45,7 @@ public class BayesianNetworkUtilTest {
 		DiscreteVariable grade = network.getVariableByName("Grade");
 		DiscreteVariable letter = network.getVariableByName("Letter");
 		
-		Map<DiscreteVariable,UndirectedNode<DiscreteVariable>> graphNodesMap  = BayesianNetworkUtil.createGraphNodeMapFromList(BayesianNetworkUtil.createUndirectedGraphFromTableNodes(network.nodes()));
+		Map<DiscreteVariable,UndirectedNode<DiscreteVariable>> graphNodesMap  = TableBayesianNetworkUtil.createGraphNodeMapFromList(TableBayesianNetworkUtil.createUndirectedGraphFromTableNodes(network));
 		
 		System.err.println("Student graph nodes");
 		for(UndirectedNode<DiscreteVariable> graphNode : graphNodesMap.values()) {
@@ -85,9 +85,9 @@ public class BayesianNetworkUtilTest {
 	public void testGreedyVariableEliminationOrder() {
 		
 		StudentNetwork network = StudentNetwork.create();
-		List<UndirectedNode<DiscreteVariable>> nodes = BayesianNetworkUtil.createUndirectedGraphFromTableNodes(network.nodes());
+		List<UndirectedNode<DiscreteVariable>> nodes = TableBayesianNetworkUtil.createUndirectedGraphFromTableNodes(network);
 		
-		List<DiscreteVariable> order = BayesianNetworkUtil.greedyVariableEliminationOrder(nodes, new MinNeighborsEvaluationMetric<DiscreteVariable>());
+		List<DiscreteVariable> order = TableBayesianNetworkUtil.greedyVariableEliminationOrder(nodes, new MinNeighborsEvaluationMetric<DiscreteVariable>());
 		
 		System.err.println("Elimination order");
 		System.err.println("--------------------------------");
