@@ -1,5 +1,7 @@
 package org.kidneyomics.graph;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,5 +55,41 @@ public class TopologicalSorter {
 		
 		//return topologgically sorted elements
 		return topologicallySortedElements;
+	}
+	
+	/**
+	 * 
+	 * @param order -- topological ordering
+	 * @param nodes -- the graph
+	 * @return true if the order is a valid topological sort and false otherwise
+	 */
+	public static <T> boolean validOrder(List<T> order, List<DirectedNode<T>> nodes) {
+		
+		if(order.size() != nodes.size()) {
+			return false;
+		}
+		
+		//construct map
+		//T ---> DirectedNode<T>
+		HashMap<T,DirectedNode<T>> map = new HashMap<T, DirectedNode<T>>();
+		for(DirectedNode<T> node : nodes) {
+			map.put(node.payload(), node);
+		}
+		
+		HashSet<T> marked = new HashSet<T>();
+		
+		for(T item : order) {
+			DirectedNode<T> node = map.get(item);
+			for(DirectedNode<T> parent : node.parents()) {
+				// if parent has not already been visited then is is not a valid topological sort
+				// b/c a topological sort requires all dependencies to be filled before perfoming an action
+				if(!marked.contains(parent.payload())) {
+					return false;
+				}
+			}
+			marked.add(item);
+		}
+		
+		return true;
 	}
 }

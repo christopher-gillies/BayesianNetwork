@@ -1,18 +1,18 @@
 package org.kidneyomics.graph;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DirectedNode<T> {
 
 	private final T payload;
-	private final List<DirectedNode<T>> children;
-	private final List<DirectedNode<T>> parents;
+	private final Set<DirectedNode<T>> children;
+	private final Set<DirectedNode<T>> parents;
 	
 	private DirectedNode(T payload) {
 		this.payload = payload;
-		this.parents = new LinkedList<DirectedNode<T>>();
-		this.children = new LinkedList<DirectedNode<T>>();
+		this.parents = new HashSet<DirectedNode<T>>();
+		this.children = new HashSet<DirectedNode<T>>();
 	}
 	
 	
@@ -57,11 +57,11 @@ public class DirectedNode<T> {
 		return this.payload;
 	}
 	
-	public List<DirectedNode<T>> children() {
+	public Set<DirectedNode<T>> children() {
 		return children;
 	}
 	
-	public List<DirectedNode<T>> parents() {
+	public Set<DirectedNode<T>> parents() {
 		return parents;
 	}
 	

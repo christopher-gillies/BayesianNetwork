@@ -48,6 +48,12 @@ public class DiscreteVariable implements Variable {
 	
 	
 	@Override
+	public String toString() {
+		return this.name;
+	}
+	
+	
+	@Override
 	public boolean equals(Object o) {
 		if(o instanceof DiscreteVariable) {
 			DiscreteVariable other = (DiscreteVariable) o;
