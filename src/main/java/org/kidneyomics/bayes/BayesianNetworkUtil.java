@@ -5,9 +5,15 @@ import java.util.List;
 import java.util.HashMap;
 
 import org.kidneyomics.graph.DirectedNode;
+import org.kidneyomics.graph.TopologicalSorter;
 
 public class BayesianNetworkUtil {
 	
+	/**
+	 * 
+	 * @param nodes from a table network
+	 * @return a graph representation of the network
+	 */
 	public static List<DirectedNode<TableNode>> createGraphFromTableNode(List<TableNode> nodes) {
 		List<DirectedNode<TableNode>> graphNodes = new LinkedList<DirectedNode<TableNode>>();
 		
@@ -34,4 +40,11 @@ public class BayesianNetworkUtil {
 		
 		return graphNodes;
 	}
+	
+	
+	public static List<TableNode> topologicalSort(List<TableNode> nodes) {
+		return TopologicalSorter.sort(createGraphFromTableNode(nodes));
+	}
+	
+	
 }

@@ -400,4 +400,43 @@ public class TableFactorTest {
 				).get(0).getValue(),0.001);
 		
 	}
+	
+	@Test
+	public void testProduct2() {
+		System.err.println("Dijoint product test");
+		HashSet<DiscreteValue> aValues = new HashSet<DiscreteValue>();
+		aValues.add(DiscreteValue.create("a1"));
+		aValues.add(DiscreteValue.create("a2"));
+		aValues.add(DiscreteValue.create("a3"));
+		
+		HashSet<DiscreteValue> bValues = new HashSet<DiscreteValue>();
+		bValues.add(DiscreteValue.create("b1"));
+		bValues.add(DiscreteValue.create("b2"));
+		
+		
+		DiscreteVariable A = DiscreteVariable.create("A", aValues);
+		
+		DiscreteVariable B = DiscreteVariable.create("B", bValues);
+		
+		
+		
+
+		
+		TableFactor factor1 = TableFactor.create(A);
+		
+		factor1.addRows( Row.create(0.1, DiscreteVariableValue.create(A, A.getValueByName("a1"))),
+				Row.create(0.3, DiscreteVariableValue.create(A, A.getValueByName("a2"))),
+				Row.create(0.6, DiscreteVariableValue.create(A, A.getValueByName("a3"))));
+		
+		TableFactor factor2 = TableFactor.create(B);
+		
+		factor2.addRows( Row.create(0.7, DiscreteVariableValue.create(B, B.getValueByName("b1"))),
+				Row.create(0.3, DiscreteVariableValue.create(B, B.getValueByName("b2"))));
+		
+		TableFactor res = (TableFactor) factor1.product(factor2);
+		assertEquals(6,res.rows().size());
+		assertTrue(ProbabilityDistributionUtil.isNormalized(res));
+		
+		System.err.println(res.toString());
+	}
 }

@@ -1,5 +1,8 @@
 package org.kidneyomics.bayes.example;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,13 +14,17 @@ import org.kidneyomics.bayes.DiscreteVariableValue;
 import org.kidneyomics.bayes.Row;
 import org.kidneyomics.bayes.TableFactor;
 import org.kidneyomics.bayes.TableNode;
+import org.kidneyomics.bayes.TableProbabilityDistribution;
 import org.kidneyomics.graph.TopologicalSorter;
 
 public class StudentNetwork implements BayesianNetwork {
 	
 	private List<TableNode> nodes;
+	private TableFactor joint = null;
+	private HashMap<String,DiscreteVariable> variableMap;
 	
 	private StudentNetwork() {
+		this.variableMap = new HashMap<String, DiscreteVariable>();
 		this.nodes = new LinkedList<TableNode>();
 		
 		
@@ -29,6 +36,8 @@ public class StudentNetwork implements BayesianNetwork {
 		{
 			DiscreteVariable diffVar = DiscreteVariable.create("Difficulty", 
 					DiscreteValue.create("d0"), DiscreteValue.create("d1"));
+			
+			variableMap.put(diffVar.getName(), diffVar);
 			
 			TableFactor diffFactor = TableFactor.create(diffVar);
 			
@@ -47,6 +56,8 @@ public class StudentNetwork implements BayesianNetwork {
 			DiscreteVariable intelVar = DiscreteVariable.create("Intelligence", 
 					DiscreteValue.create("i0"), DiscreteValue.create("i1"));
 			
+			variableMap.put(intelVar.getName(), intelVar);
+			
 			TableFactor intelFactor = TableFactor.create(intelVar);
 			
 			intelFactor.addRows( Row.create(0.7, DiscreteVariableValue.create(intelVar, intelVar.getValueByName("i0"))),
@@ -63,6 +74,8 @@ public class StudentNetwork implements BayesianNetwork {
 		{
 			DiscreteVariable satVar = DiscreteVariable.create("SAT", 
 					DiscreteValue.create("s0"), DiscreteValue.create("s1"));
+			
+			variableMap.put(satVar.getName(), satVar);
 			
 			TableFactor satFactor = TableFactor.create(intelNode.variable(),satVar);
 			
@@ -96,6 +109,8 @@ public class StudentNetwork implements BayesianNetwork {
 		{
 			DiscreteVariable gradeVar = DiscreteVariable.create("Grade", 
 					DiscreteValue.create("g1"), DiscreteValue.create("g2"), DiscreteValue.create("g3"));
+			
+			variableMap.put(gradeVar.getName(), gradeVar);
 			
 			TableFactor gradeFactor = TableFactor.create(intelNode.variable(), diffNode.variable(), gradeVar);
 			
@@ -175,6 +190,8 @@ public class StudentNetwork implements BayesianNetwork {
 			DiscreteVariable letterVar = DiscreteVariable.create("Letter", 
 					DiscreteValue.create("l0"), DiscreteValue.create("l1"));
 			
+			variableMap.put(letterVar.getName(), letterVar);
+			
 			TableFactor letterFactor = TableFactor.create(gradeNode.variable(),letterVar);
 			
 			letterFactor.addRows( 
@@ -186,17 +203,17 @@ public class StudentNetwork implements BayesianNetwork {
 					DiscreteVariableValue.create(letterVar, letterVar.getValueByName("l1"))
 					),
 					//g2
-					Row.create(0.1, DiscreteVariableValue.create(gradeNode.variable(), gradeNode.variable().getValueByName("g2")),
+					Row.create(0.4, DiscreteVariableValue.create(gradeNode.variable(), gradeNode.variable().getValueByName("g2")),
 					DiscreteVariableValue.create(letterVar, letterVar.getValueByName("l0"))
 					),
-					Row.create(0.9, DiscreteVariableValue.create(gradeNode.variable(), gradeNode.variable().getValueByName("g2")),
+					Row.create(0.6, DiscreteVariableValue.create(gradeNode.variable(), gradeNode.variable().getValueByName("g2")),
 					DiscreteVariableValue.create(letterVar, letterVar.getValueByName("l1"))
 					),
 					//g3
-					Row.create(0.1, DiscreteVariableValue.create(gradeNode.variable(), gradeNode.variable().getValueByName("g3")),
+					Row.create(0.99, DiscreteVariableValue.create(gradeNode.variable(), gradeNode.variable().getValueByName("g3")),
 					DiscreteVariableValue.create(letterVar, letterVar.getValueByName("l0"))
 					),
-					Row.create(0.9, DiscreteVariableValue.create(gradeNode.variable(), gradeNode.variable().getValueByName("g3")),
+					Row.create(0.01, DiscreteVariableValue.create(gradeNode.variable(), gradeNode.variable().getValueByName("g3")),
 					DiscreteVariableValue.create(letterVar, letterVar.getValueByName("l1"))
 					)
 					);
@@ -223,12 +240,60 @@ public class StudentNetwork implements BayesianNetwork {
 		return sb.toString();
 	}
 	
+	public List<TableNode> nodes() {
+		return nodes;
+	}
+	
 	public static StudentNetwork create() {
 		return new StudentNetwork();
 	}
 	
 	public List<TableNode> topologicalSort() {
-		return TopologicalSorter.sort(BayesianNetworkUtil.createGraphFromTableNode(nodes));
+		return BayesianNetworkUtil.topologicalSort(nodes);
+	}
+	
+	public TableProbabilityDistribution computeProbability(DiscreteVariable target, DiscreteVariableValue... evidences) {
+		
+		TableFactor joint = computeJoint();
+		
+		HashSet<DiscreteVariable> marginalSet = new HashSet<DiscreteVariable>();
+		
+		marginalSet.addAll(joint.scope());
+		
+		// remove target
+		marginalSet.remove(target);
+		
+		//remove marginal variables
+		for(DiscreteVariableValue varVal : evidences) {
+			marginalSet.remove(varVal.variable());
+		}
+		
+		if(evidences.length == 0) {
+			return TableProbabilityDistribution.create( (TableFactor)  joint.marginalize(marginalSet));
+		} else {
+			return TableProbabilityDistribution.create( (TableFactor)  joint.reduce(evidences).marginalize(marginalSet));
+		}
+			
+	}
+	
+	public DiscreteVariable getVariableByName(String name) {
+		return variableMap.get(name);
+	}
+	
+	public TableFactor computeJoint() {
+		
+		if(joint == null) {
+			List<TableNode> sorted = topologicalSort();
+			Iterator<TableNode> iter = sorted.iterator();
+			TableFactor current = iter.next().factor();
+			while(iter.hasNext()) {
+				current = (TableFactor) current.product(iter.next().factor());
+			}
+			joint = current;
+			return current;
+		} else {
+			return joint;
+		}
 	}
 	
 }

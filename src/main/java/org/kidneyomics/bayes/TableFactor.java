@@ -189,16 +189,13 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 			}
 		}
 		
-		if(intersection.size() == 0) {
-			throw new IllegalArgumentException("The factors must overlap by some variable");
-		}
 		
 		//Create result factor
 		TableFactor result = TableFactor.create(newVariableSet);
 		
+
 		for(Row rowA : this.rows) {
-			for(Row rowB : tFactor.rows) {
-				
+			for(Row rowB : tFactor.rows) {	
 				if(rowA.compatible(rowB, intersection)) {
 					Row resRow = rowA.product(rowB, newVariableSet);
 					result.addRow(resRow);
@@ -208,6 +205,7 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 		
 		
 		return result;
+		
 	}
 
 	public Factor<DiscreteVariable, DiscreteVariableValue> reduce(DiscreteVariableValue... discreteVariableValues) {
@@ -239,7 +237,7 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 	/**
 	 * 
 	 * @param variableValues
-	 * @param clone -- true or false specifying whether or not the rows should be cloneed or not
+	 * @param clone -- true or false specifying whether or not the rows should be cloned or not
 	 * @return a list of rows meeting the criteria input
 	 */
 	public List<Row> getRowsByValues(boolean clone, Set<DiscreteVariableValue> variableValues) {

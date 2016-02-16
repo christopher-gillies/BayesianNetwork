@@ -98,5 +98,56 @@ public class RowTest {
 		
 		System.err.println(row1.product(row2, variables));
 	}
+	
+	@Test
+	public void testProduct2() {
+		
+		HashSet<DiscreteValue> letterValues = new HashSet<DiscreteValue>();
+		
+		letterValues.add(DiscreteValue.create("l0"));
+		letterValues.add(DiscreteValue.create("l1"));
+		
+		HashSet<DiscreteValue> gradeValues = new HashSet<DiscreteValue>();
+		gradeValues.add(DiscreteValue.create("g1"));
+		gradeValues.add(DiscreteValue.create("g2"));
+		gradeValues.add(DiscreteValue.create("g3"));
+		
+		DiscreteVariable letter = DiscreteVariable.create("Letter", letterValues);
+		
+		DiscreteVariable grade = DiscreteVariable.create("Grade", gradeValues);
+		
+		//create a joint factor
+		
+		HashSet<DiscreteVariable> variables = new HashSet<DiscreteVariable>();
+		variables.add(letter);
+		variables.add(grade);
+		
+		
+		Row row1 = Row.create(0.1,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+		
+		Row row2 = Row.create(0.1,DiscreteVariableValue.create(grade, grade.getValueByName("g1")));
+		
+		Row row3 = Row.create(0.2,DiscreteVariableValue.create(letter, letter.getValueByName("l1")));
+		
+		
+		
+		//HashSet<DiscreteVariable> intersection = new HashSet<DiscreteVariable>();
+		//intersection.add(letter);
+		
+		assertTrue(row1.compatible(row2));
+		
+		
+		assertEquals(0.1 * 0.1, row1.product(row2, variables).getValue(), 0.0001);
+		
+		assertTrue(row1.product(row2, variables).hasAllDiscreteVariables(variables));
+		System.err.println(row1.product(row2, variables));
+		
+		assertTrue(row3.compatible(row2));
+		
+		assertEquals(0.1 * 0.2, row3.product(row2, variables).getValue(), 0.0001);
+		
+		System.err.println(row3.product(row2, variables));
+		assertTrue(row3.product(row2, variables).hasAllDiscreteVariables(variables));
+	}
 
 }

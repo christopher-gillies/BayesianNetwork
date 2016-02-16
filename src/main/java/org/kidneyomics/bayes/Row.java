@@ -67,6 +67,14 @@ public class Row implements Cloneable {
 		return this.key;
 	}
 	
+	public boolean hasDiscreteVariable(DiscreteVariable var) {
+		return this.variableValuesMap.keySet().contains(var);
+	}
+	
+	public boolean hasAllDiscreteVariables(Collection<DiscreteVariable> vars) {
+		return this.variableValuesMap.keySet().containsAll(vars);
+	}
+	
 	public boolean hasDiscreteVariableValue(DiscreteVariableValue varVal) {
 		return this.variableValuesSet.contains(varVal);
 	}
@@ -167,7 +175,7 @@ public class Row implements Cloneable {
 	 * 
 	 * @param other -- row to compare with
 	 * @param intersectingVariables --intersecting variables for both rows
-	 * @return true if rows have overlapping columns and same value in those columns
+	 * @return true if rows have overlapping columns and same value in those columns or if there is no overlap at all
 	 */
 	public boolean compatible(Row other, Set<DiscreteVariable> intersectingVariables) {
 		
