@@ -56,7 +56,7 @@ public class TableConditionalProbabilityDistribution implements ProbabilityDistr
 				DiscreteVariableValue varVal = row.getVariableValue(variable);
 				sb.append(varVal.toString());
 				if(iter.hasNext()) {
-					sb.append("\t");
+					sb.append(",");
 				}
 			}
 			

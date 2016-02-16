@@ -28,9 +28,29 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 		this.rows = new LinkedList<Row>();
 	}
 	
-	public static TableFactor create(Set<DiscreteVariable> variables) {
-		TableFactor factor = new TableFactor(variables);
+	/**
+	 * 
+	 * @param scope -- the variables included in the table
+	 * @return TableFactor set up for these variables
+	 * 
+	 */
+	public static TableFactor create(Set<DiscreteVariable> scope) {
+		TableFactor factor = new TableFactor(scope);
 		return factor;
+	}
+	
+	/**
+	 * 
+	 * @param scope -- the variables included in the table
+	 * @return TableFactor set up for these variables
+	 * 
+	 */
+	public static TableFactor create(DiscreteVariable... scope) {
+		Set<DiscreteVariable> scopeSet = new HashSet<DiscreteVariable>();
+		for(DiscreteVariable variable : scope) {
+			scopeSet.add(variable);
+		}
+		return create(scopeSet);
 	}
 		
 	public TableFactor addRow(Row row) {

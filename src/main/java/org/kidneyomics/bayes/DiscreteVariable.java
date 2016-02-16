@@ -1,6 +1,7 @@
 package org.kidneyomics.bayes;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,6 +28,14 @@ public class DiscreteVariable implements Variable {
 	 */
 	public static DiscreteVariable create(String name, Set<DiscreteValue> values) {
 		return new DiscreteVariable(name,values);
+	}
+	
+	public static DiscreteVariable create(String name, DiscreteValue... values) {
+		HashSet<DiscreteValue> valuesSet = new HashSet<DiscreteValue>();
+		for(DiscreteValue value : values) {
+			valuesSet.add(value);
+		}
+		return create(name,valuesSet);
 	}
 	
 	public String getName() {
