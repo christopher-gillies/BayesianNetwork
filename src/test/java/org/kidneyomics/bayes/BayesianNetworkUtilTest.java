@@ -345,5 +345,27 @@ public class BayesianNetworkUtilTest {
 		assertEquals(exp2, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1"))).getValue(),0.0001);
 	}
 	
+	
+	@Test
+	public void testConditionalProbVarElim7() {
+		System.err.println("Letter -- given letter is l0");
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable letter = network.getVariableByName("Letter");
+		
+		TableProbabilityDistribution dist = TableBayesianNetworkUtil.conditionalProbVarElim(network, letter, DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+		
+		System.err.println(dist);
+		
+		TableProbabilityDistribution longCalculationTable = network.computeProbability(letter,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+		System.err.println(longCalculationTable);
+		
+		double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l0"))).getValue();
+		//double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1"))).getValue();
+		
+		assertEquals(exp1, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l0"))).getValue(),0.0001);
+		//assertEquals(exp2, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1"))).getValue(),0.0001);
+	}
+	
 
 }
