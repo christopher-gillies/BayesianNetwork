@@ -24,9 +24,11 @@ public class StudentNetwork implements TableBayesianNetwork {
 	private List<TableNode> nodes;
 	private TableFactor joint = null;
 	private HashMap<String,DiscreteVariable> variableMap;
+	private HashMap<DiscreteVariable,TableNode> nodeMap;
 	
 	private StudentNetwork() {
 		this.variableMap = new HashMap<String, DiscreteVariable>();
+		this.nodeMap = new HashMap<DiscreteVariable,TableNode>();
 		this.nodes = new LinkedList<TableNode>();
 		
 		
@@ -49,6 +51,7 @@ public class StudentNetwork implements TableBayesianNetwork {
 			
 			diffNode = TableNode.create(diffVar, diffFactor);
 			nodes.add(diffNode);
+			nodeMap.put(diffVar, diffNode);
 		}
 		
 		
@@ -68,6 +71,7 @@ public class StudentNetwork implements TableBayesianNetwork {
 			
 			intelNode = TableNode.create(intelVar, intelFactor);
 			nodes.add(intelNode);
+			nodeMap.put(intelVar, intelNode);
 		}
 		
 		
@@ -103,6 +107,7 @@ public class StudentNetwork implements TableBayesianNetwork {
 			
 			
 			nodes.add(satNode);
+			nodeMap.put(satVar, satNode);
 		}
 		
 		
@@ -184,6 +189,7 @@ public class StudentNetwork implements TableBayesianNetwork {
 			
 			
 			nodes.add(gradeNode);
+			nodeMap.put(gradeVar, gradeNode);
 		}
 		
 		//create letter node
@@ -227,6 +233,7 @@ public class StudentNetwork implements TableBayesianNetwork {
 			
 			
 			nodes.add(letterNode);
+			nodeMap.put(letterVar, letterNode);
 		}
 		
 		
@@ -255,6 +262,10 @@ public class StudentNetwork implements TableBayesianNetwork {
 	}
 	
 	public TableProbabilityDistribution computeProbability(DiscreteVariable target, DiscreteVariableValue... evidences) {
+		
+		if(evidences == null) {
+			evidences = new DiscreteVariableValue[0];
+		}
 		
 		TableFactor joint = computeJoint();
 		
@@ -304,5 +315,9 @@ public class StudentNetwork implements TableBayesianNetwork {
 			factors.add(node.factor());
 		}
 		return factors;
+	}
+
+	public TableNode getNode(DiscreteVariable variable) {
+		return nodeMap.get(variable);
 	}
 }

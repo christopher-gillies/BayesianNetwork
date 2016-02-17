@@ -11,6 +11,7 @@ import java.util.Iterator;
 
 import org.kidneyomics.graph.DirectedNode;
 import org.kidneyomics.graph.EvaluationMetric;
+import org.kidneyomics.graph.MinNeighborsEvaluationMetric;
 import org.kidneyomics.graph.UndirectedNode;
 import org.kidneyomics.graph.TopologicalSorter;
 
@@ -21,7 +22,7 @@ public class TableBayesianNetworkUtil {
 	 * @param nodes from a table network
 	 * @return a graph representation of the network
 	 */
-	public static List<DirectedNode<TableNode>> createGraphFromTableNode(TableBayesianNetwork network) {
+	public static List<DirectedNode<TableNode>> createGraphFromTableNetwork(TableBayesianNetwork network) {
 		List<TableNode> nodes = network.nodes();
 		List<DirectedNode<TableNode>> graphNodes = new LinkedList<DirectedNode<TableNode>>();
 		
@@ -51,7 +52,7 @@ public class TableBayesianNetworkUtil {
 	
 	
 	public static List<TableNode> topologicalSort(TableBayesianNetwork network) {
-		return TopologicalSorter.sort(createGraphFromTableNode(network));
+		return TopologicalSorter.sort(createGraphFromTableNetwork(network));
 	}
 	
 	
@@ -60,7 +61,7 @@ public class TableBayesianNetworkUtil {
 	 * @param nodes from Bayesian network
 	 * @return a list of nodes describing an undirected graph for the Bayesian network
 	 */
-	public static List<UndirectedNode<DiscreteVariable>> createUndirectedGraphFromTableNodes(TableBayesianNetwork network) {
+	public static List<UndirectedNode<DiscreteVariable>> createUndirectedGraphFromTableNetwork(TableBayesianNetwork network) {
 		List<TableNode> nodes = network.nodes();
 		List<UndirectedNode<DiscreteVariable>> graphNodes = new LinkedList<UndirectedNode<DiscreteVariable>>();
 		
@@ -112,11 +113,14 @@ public class TableBayesianNetworkUtil {
 	/**
 	 * Algorithm 9.4 from Probabilistic Graphical Models
 	 * An order for performing variable elimination using the supplied metric
-	 * @param nodes from undirected graph
+	 * @param bayesian network
 	 * @param metric to minimize
 	 * @return
 	 */
-	public static List<DiscreteVariable> greedyVariableEliminationOrder(List<UndirectedNode<DiscreteVariable>> nodes, EvaluationMetric<DiscreteVariable> metric) {
+	public static List<DiscreteVariable> greedyVariableEliminationOrder(TableBayesianNetwork network, EvaluationMetric<DiscreteVariable> metric) {
+		
+		
+		List<UndirectedNode<DiscreteVariable>> nodes = createUndirectedGraphFromTableNetwork(network);
 		LinkedList<DiscreteVariable> order = new LinkedList<DiscreteVariable>();
 		HashSet<DiscreteVariable> marked = new HashSet<DiscreteVariable>();
 		HashSet<UndirectedNode<DiscreteVariable>> unmarked = new HashSet<UndirectedNode<DiscreteVariable>>();
@@ -169,6 +173,40 @@ public class TableBayesianNetworkUtil {
 	}
 	
 	
+	public static TableProbabilityDistribution conditionalProbVarElim(TableBayesianNetwork network, DiscreteVariable queryVar, DiscreteVariableValue... evidence) {
+		
+		Set<TableFactor> factors = network.factors();
+		
+		for(DiscreteVariableValue piece : evidence) {
+			TableNode node = network.getNode(piece.variable());
+			if(node == null) {
+				throw new IllegalArgumentException(piece.variable() + " not found in the networ!");
+			}
+			//get factor
+			TableFactor factor = node.factor();
+			//remove this factor from set of factors
+			factors.remove(factor);
+			//remove non-evidence rows from factor
+			factor = (TableFactor) factor.reduce(piece);
+			//add factor back to the set
+			factors.add(factor);
+		}
+		
+		List<DiscreteVariable> eliminationOrder = greedyVariableEliminationOrder(network, new MinNeighborsEvaluationMetric<DiscreteVariable>());
+		
+		//remove query variable
+		eliminationOrder.remove(queryVar);
+		
+		
+		return sumProductVariableElimination(factors,eliminationOrder);
+	}
+	
+	/***
+	 * 
+	 * @param network -- bayesian network to perform the analysis on
+	 * @param eliminationOrder -- order of variables to eliminate
+	 * @return
+	 */
 	public static TableProbabilityDistribution sumProductVariableElimination(TableBayesianNetwork network, List<DiscreteVariable> eliminationOrder) {
 		return sumProductVariableElimination(network.factors(), eliminationOrder);
 	}

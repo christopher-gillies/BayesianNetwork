@@ -277,5 +277,20 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 		}
 		return getRowsByValues(clone,result);
 	}
+	
+	/**
+	 * 
+	 * @param clone
+	 * @param variableValues -- the row key
+	 * @return -- find the first row matching this key
+	 */
+	public Row getRowByValues(boolean clone, DiscreteVariableValue... variableValues) {
+		List<Row> result = getRowsByValues(clone,variableValues);
+		if(result.size() > 0) {
+			return getRowsByValues(clone,variableValues).get(0);
+		} else {
+			return null;
+		}
+	}
 
 }

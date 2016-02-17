@@ -45,7 +45,7 @@ public class BayesianNetworkUtilTest {
 		DiscreteVariable grade = network.getVariableByName("Grade");
 		DiscreteVariable letter = network.getVariableByName("Letter");
 		
-		Map<DiscreteVariable,UndirectedNode<DiscreteVariable>> graphNodesMap  = TableBayesianNetworkUtil.createGraphNodeMapFromList(TableBayesianNetworkUtil.createUndirectedGraphFromTableNodes(network));
+		Map<DiscreteVariable,UndirectedNode<DiscreteVariable>> graphNodesMap  = TableBayesianNetworkUtil.createGraphNodeMapFromList(TableBayesianNetworkUtil.createUndirectedGraphFromTableNetwork(network));
 		
 		System.err.println("Student graph nodes");
 		for(UndirectedNode<DiscreteVariable> graphNode : graphNodesMap.values()) {
@@ -85,9 +85,8 @@ public class BayesianNetworkUtilTest {
 	public void testGreedyVariableEliminationOrder() {
 		
 		StudentNetwork network = StudentNetwork.create();
-		List<UndirectedNode<DiscreteVariable>> nodes = TableBayesianNetworkUtil.createUndirectedGraphFromTableNodes(network);
 		
-		List<DiscreteVariable> order = TableBayesianNetworkUtil.greedyVariableEliminationOrder(nodes, new MinNeighborsEvaluationMetric<DiscreteVariable>());
+		List<DiscreteVariable> order = TableBayesianNetworkUtil.greedyVariableEliminationOrder(network, new MinNeighborsEvaluationMetric<DiscreteVariable>());
 		
 		System.err.println("Elimination order");
 		System.err.println("--------------------------------");
@@ -104,5 +103,247 @@ public class BayesianNetworkUtilTest {
 		assertTrue(network.getVariableByName("Intelligence").equals(order.get(4)) || network.getVariableByName("Grade").equals(order.get(4)));
 		
 	}
+	
+	
+	@Test
+	public void testSumProductVariableElimination1() {
+		System.err.println("Difficulty");
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable diff = network.getVariableByName("Difficulty");
+		
+		List<DiscreteVariable> order = TableBayesianNetworkUtil.greedyVariableEliminationOrder(network, new MinNeighborsEvaluationMetric<DiscreteVariable>());
+		
+		order.remove(diff);
+		
+		TableProbabilityDistribution dist = TableBayesianNetworkUtil.sumProductVariableElimination(network, order);
+		
+		System.err.println(dist);
+		
+		assertEquals(0.6, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).getValue(),0.0001);
+		assertEquals(0.4, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d1"))).getValue(),0.0001);
+		
+	}
+	
+	@Test
+	public void testSumProductVariableElimination2() {
+		System.err.println("SAT");
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable var = network.getVariableByName("SAT");
+		
+		List<DiscreteVariable> order = TableBayesianNetworkUtil.greedyVariableEliminationOrder(network, new MinNeighborsEvaluationMetric<DiscreteVariable>());
+		
+		order.remove(var);
+		
+		TableProbabilityDistribution dist = TableBayesianNetworkUtil.sumProductVariableElimination(network, order);
+		
+		System.err.println(dist);
+		
+		TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+		System.err.println(longCalculationTable);
+		
+		double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("s0"))).getValue();
+		double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("s1"))).getValue();
+		
+		assertEquals(exp1, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("s0"))).getValue(),0.0001);
+		assertEquals(exp2, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("s1"))).getValue(),0.0001);
+		
+	}
+	
+	@Test
+	public void testSumProductVariableElimination3() {
+		System.err.println("Letter");
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable var = network.getVariableByName("Letter");
+		
+		List<DiscreteVariable> order = TableBayesianNetworkUtil.greedyVariableEliminationOrder(network, new MinNeighborsEvaluationMetric<DiscreteVariable>());
+		
+		order.remove(var);
+		
+		TableProbabilityDistribution dist = TableBayesianNetworkUtil.sumProductVariableElimination(network, order);
+		
+		System.err.println(dist);
+		
+		TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+		System.err.println(longCalculationTable);
+		
+		double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("l0"))).getValue();
+		double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("l1"))).getValue();
+		
+		assertEquals(exp1, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("l0"))).getValue(),0.0001);
+		assertEquals(exp2, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("l1"))).getValue(),0.0001);
+		
+	}
+	
+	@Test
+	public void testSumProductVariableElimination4() {
+		System.err.println("Grade");
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable var = network.getVariableByName("Grade");
+		
+		List<DiscreteVariable> order = TableBayesianNetworkUtil.greedyVariableEliminationOrder(network, new MinNeighborsEvaluationMetric<DiscreteVariable>());
+		
+		order.remove(var);
+		
+		TableProbabilityDistribution dist = TableBayesianNetworkUtil.sumProductVariableElimination(network, order);
+		
+		System.err.println(dist);
+		
+		TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+		System.err.println(longCalculationTable);
+		
+		double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g1"))).getValue();
+		double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g2"))).getValue();
+		double exp3 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g3"))).getValue();
+		
+		assertEquals(exp1, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g1"))).getValue(),0.0001);
+		assertEquals(exp2, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g2"))).getValue(),0.0001);
+		assertEquals(exp3, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g3"))).getValue(),0.0001);
+		
+	}
+	
+	
+	@Test
+	public void testConditionalProbVarElim1() {
+		System.err.println("Difficulty -- no evidence");
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable diff = network.getVariableByName("Difficulty");
+		
+		TableProbabilityDistribution dist = TableBayesianNetworkUtil.conditionalProbVarElim(network, diff);
+		
+		System.err.println(dist);
+		
+		assertEquals(0.6, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).getValue(),0.0001);
+		assertEquals(0.4, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d1"))).getValue(),0.0001);
+	}
+	
+	@Test
+	public void testConditionalProbVarElim2() {
+		System.err.println("Difficulty -- given grade was g1 (highest grade) ");
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable diff = network.getVariableByName("Difficulty");
+		DiscreteVariable grade = network.getVariableByName("Grade");
+		
+		TableProbabilityDistribution dist = TableBayesianNetworkUtil.conditionalProbVarElim(network, diff, DiscreteVariableValue.create(grade, grade.getValueByName("g1")));
+		
+		System.err.println(dist);
+		
+		TableProbabilityDistribution longCalculationTable = network.computeProbability(diff,DiscreteVariableValue.create(grade, grade.getValueByName("g1")));
+		System.err.println(longCalculationTable);
+		
+		double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).getValue();
+		double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d1"))).getValue();
+		
+		assertEquals(exp1, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).getValue(),0.0001);
+		assertEquals(exp2, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d1"))).getValue(),0.0001);
+	}
+	
+	@Test
+	public void testConditionalProbVarElim3() {
+		System.err.println("Difficulty -- given grade was g1 (highest grade) and student not intelligent i0 ");
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable diff = network.getVariableByName("Difficulty");
+		DiscreteVariable grade = network.getVariableByName("Grade");
+		DiscreteVariable intel = network.getVariableByName("Intelligence");
+		
+		TableProbabilityDistribution dist = TableBayesianNetworkUtil.conditionalProbVarElim(network, diff, DiscreteVariableValue.create(grade, grade.getValueByName("g1")),
+				DiscreteVariableValue.create(intel, intel.getValueByName("i0")));
+		
+		System.err.println(dist);
+		
+		TableProbabilityDistribution longCalculationTable = network.computeProbability(diff,DiscreteVariableValue.create(grade, grade.getValueByName("g1")),
+				DiscreteVariableValue.create(intel, intel.getValueByName("i0")));
+		System.err.println(longCalculationTable);
+		
+		double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).getValue();
+		double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d1"))).getValue();
+		
+		assertEquals(exp1, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).getValue(),0.0001);
+		assertEquals(exp2, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d1"))).getValue(),0.0001);
+	}
+	
+	
+	@Test
+	public void testConditionalProbVarElim4() {
+		System.err.println("Letter -- given grade was g1 (highest grade) and student not intelligent i0 ");
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable grade = network.getVariableByName("Grade");
+		DiscreteVariable intel = network.getVariableByName("Intelligence");
+		DiscreteVariable letter = network.getVariableByName("Letter");
+		
+		TableProbabilityDistribution dist = TableBayesianNetworkUtil.conditionalProbVarElim(network, letter, DiscreteVariableValue.create(grade, grade.getValueByName("g1")),
+				DiscreteVariableValue.create(intel, intel.getValueByName("i0")));
+		
+		System.err.println(dist);
+		
+		TableProbabilityDistribution longCalculationTable = network.computeProbability(letter,DiscreteVariableValue.create(grade, grade.getValueByName("g1")),
+				DiscreteVariableValue.create(intel, intel.getValueByName("i0")));
+		System.err.println(longCalculationTable);
+		
+		double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l0"))).getValue();
+		double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1"))).getValue();
+		
+		assertEquals(exp1, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l0"))).getValue(),0.0001);
+		assertEquals(exp2, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1"))).getValue(),0.0001);
+	}
+	
+	
+	@Test
+	public void testConditionalProbVarElim5() {
+		System.err.println("Letter -- given student not intelligent i0 ");
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable grade = network.getVariableByName("Grade");
+		DiscreteVariable intel = network.getVariableByName("Intelligence");
+		DiscreteVariable letter = network.getVariableByName("Letter");
+		
+		TableProbabilityDistribution dist = TableBayesianNetworkUtil.conditionalProbVarElim(network, letter,
+				DiscreteVariableValue.create(intel, intel.getValueByName("i0")));
+		
+		System.err.println(dist);
+		
+		TableProbabilityDistribution longCalculationTable = network.computeProbability(letter,
+				DiscreteVariableValue.create(intel, intel.getValueByName("i0")));
+		System.err.println(longCalculationTable);
+		
+		double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l0"))).getValue();
+		double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1"))).getValue();
+		
+		assertEquals(exp1, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l0"))).getValue(),0.0001);
+		assertEquals(exp2, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1"))).getValue(),0.0001);
+	}
+	
+	@Test
+	public void testConditionalProbVarElim6() {
+		System.err.println("Letter -- given easy class was d0 and student not intelligent i0 ");
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable diff = network.getVariableByName("Difficulty");
+		DiscreteVariable intel = network.getVariableByName("Intelligence");
+		DiscreteVariable letter = network.getVariableByName("Letter");
+		
+		TableProbabilityDistribution dist = TableBayesianNetworkUtil.conditionalProbVarElim(network, letter, DiscreteVariableValue.create(diff, diff.getValueByName("d0")),
+				DiscreteVariableValue.create(intel, intel.getValueByName("i0")));
+		
+		System.err.println(dist);
+		
+		TableProbabilityDistribution longCalculationTable = network.computeProbability(letter,DiscreteVariableValue.create(diff, diff.getValueByName("d0")),
+				DiscreteVariableValue.create(intel, intel.getValueByName("i0")));
+		System.err.println(longCalculationTable);
+		
+		double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l0"))).getValue();
+		double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1"))).getValue();
+		
+		assertEquals(exp1, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l0"))).getValue(),0.0001);
+		assertEquals(exp2, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1"))).getValue(),0.0001);
+	}
+	
 
 }
