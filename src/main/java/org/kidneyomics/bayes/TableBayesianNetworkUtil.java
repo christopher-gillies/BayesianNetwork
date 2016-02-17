@@ -172,7 +172,13 @@ public class TableBayesianNetworkUtil {
 		return order;
 	}
 	
-	
+	/**
+	 * 
+	 * @param network -- bayesian network to perform operation on
+	 * @param queryVar -- variable that we want to query
+	 * @param evidence -- the evidence that we have
+	 * @return
+	 */
 	public static TableProbabilityDistribution conditionalProbVarElim(TableBayesianNetwork network, DiscreteVariable queryVar, DiscreteVariableValue... evidence) {
 		
 		Set<TableFactor> factors = network.factors();
@@ -211,6 +217,12 @@ public class TableBayesianNetworkUtil {
 		return sumProductVariableElimination(network.factors(), eliminationOrder);
 	}
 	
+	/**
+	 * Algorithm 9.1
+	 * @param factors -- factors from a bayesian network
+	 * @param eliminationOrder -- order of variables to eliminate
+	 * @return
+	 */
 	public static TableProbabilityDistribution sumProductVariableElimination(Set<TableFactor> factors, List<DiscreteVariable> eliminationOrder) {
 		
 		for(DiscreteVariable var : eliminationOrder) {
