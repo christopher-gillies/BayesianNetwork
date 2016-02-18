@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.junit.Test;
 import org.kidneyomics.bayes.CliqueTree.CliqueNode;
+import org.kidneyomics.bayes.example.StudentNetwork;
 import org.kidneyomics.bayes.example.StudentNetworkExtended;
 
 public class CliqueTreeTest {
@@ -248,7 +249,7 @@ public class CliqueTreeTest {
 		
 		assertEquals(5,tree.nodes().size());
 		
-		tree.assignFactorsToNodes();
+		tree.assignFactorsToNodesAndInitialize();
 		
 		System.err.println("Tree with Factors assigned");
 		System.err.println(tree.toString());
@@ -275,5 +276,252 @@ public class CliqueTreeTest {
 		}
 		
 	}
+	
+	
+	@Test
+	public void testCalibrateCliqueTreeMarginals() {
+		System.err.println("testCalibrateCliqueTree Marginal");
+		StudentNetwork network = StudentNetwork.create();
 
+		DiscreteVariable diff = network.getVariableByName("Difficulty");
+		DiscreteVariable intel = network.getVariableByName("Intelligence");
+		DiscreteVariable grade = network.getVariableByName("Grade");
+		DiscreteVariable sat = network.getVariableByName("SAT");
+		DiscreteVariable letter = network.getVariableByName("Letter");
+		
+
+		
+		
+		CliqueTree tree = CliqueTree.create(network);
+		
+		tree.calibrateCliqueTree();
+		
+		{
+			DiscreteVariable var = diff;
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			
+			System.err.println("marginal for" + var);
+			System.err.println(marge.toString());
+			
+			TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+			
+			double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("d0"))).getValue();
+			double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("d1"))).getValue();
+			
+			assertEquals(exp1, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("d0"))).getValue(),0.001);
+			assertEquals(exp2, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("d1"))).getValue(),0.001);
+		}
+		
+		
+		{
+			DiscreteVariable var = sat;
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			
+			System.err.println("marginal for " + var);
+			System.err.println(marge.toString());
+			
+			TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+			System.err.println("long for " + var);
+			System.err.println(longCalculationTable.toString());
+			
+			double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("s0"))).getValue();
+			double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("s1"))).getValue();
+			
+			assertEquals(exp1, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("s0"))).getValue(),0.001);
+			assertEquals(exp2, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("s1"))).getValue(),0.001);
+		}
+		
+		{
+			DiscreteVariable var = intel;
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			
+			System.err.println("marginal for " + var);
+			System.err.println(marge.toString());
+			
+			TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+			System.err.println("long for " + var);
+			System.err.println(longCalculationTable.toString());
+			
+			double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("i0"))).getValue();
+			double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("i1"))).getValue();
+			
+			assertEquals(exp1, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("i0"))).getValue(),0.001);
+			assertEquals(exp2, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("i1"))).getValue(),0.001);
+		}
+		
+		{
+			DiscreteVariable var = letter;
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			
+			System.err.println("marginal for " + var);
+			System.err.println(marge.toString());
+			
+			TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+			System.err.println("long for " + var);
+			System.err.println(longCalculationTable.toString());
+			
+			double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("l0"))).getValue();
+			double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("l1"))).getValue();
+			
+			assertEquals(exp1, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("l0"))).getValue(),0.001);
+			assertEquals(exp2, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("l1"))).getValue(),0.001);
+		}
+		
+		{
+			DiscreteVariable var = grade;
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			
+			System.err.println("marginal for " + var);
+			System.err.println(marge.toString());
+			
+			TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+			System.err.println("long for " + var);
+			System.err.println(longCalculationTable.toString());
+			
+			double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g1"))).getValue();
+			double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g2"))).getValue();
+			double exp3 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g3"))).getValue();
+			
+			assertEquals(exp1, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g1"))).getValue(),0.001);
+			assertEquals(exp2, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g2"))).getValue(),0.001);
+			assertEquals(exp3, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g3"))).getValue(),0.001);
+		}
+	}
+
+	@Test
+	public void testCalibrateCliqueTreeEvidence() {
+		System.err.println("testCalibrateCliqueTree with Evidence");
+		StudentNetwork network = StudentNetwork.create();
+
+		DiscreteVariable diff = network.getVariableByName("Difficulty");
+		DiscreteVariable intel = network.getVariableByName("Intelligence");
+		DiscreteVariable grade = network.getVariableByName("Grade");
+		DiscreteVariable sat = network.getVariableByName("SAT");
+		DiscreteVariable letter = network.getVariableByName("Letter");
+		
+
+		
+		
+		CliqueTree tree = CliqueTree.create(network,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+		
+		tree.calibrateCliqueTree();
+		
+		{
+			DiscreteVariable var = diff;
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			
+			System.err.println("marginal for " + var);
+			System.err.println(marge.toString());
+			
+			TableProbabilityDistribution longCalculationTable = network.computeProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+			
+			System.err.println("long for " + var);
+			System.err.println(longCalculationTable.toString());
+			
+			double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("d0"))).getValue();
+			double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("d1"))).getValue();
+			
+			assertEquals(exp1, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("d0"))).getValue(),0.001);
+			assertEquals(exp2, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("d1"))).getValue(),0.001);
+		}
+		
+		{
+			DiscreteVariable var = intel;
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			
+			System.err.println("marginal for " + var);
+			System.err.println(marge.toString());
+			
+			TableProbabilityDistribution longCalculationTable = network.computeProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+			
+			System.err.println("long for " + var);
+			System.err.println(longCalculationTable.toString());
+			
+			double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("i0"))).getValue();
+			double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("i1"))).getValue();
+			
+			assertEquals(exp1, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("i0"))).getValue(),0.001);
+			assertEquals(exp2, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("i1"))).getValue(),0.001);
+		}
+		
+		{
+			DiscreteVariable var = letter;
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			
+			System.err.println("marginal for " + var);
+			System.err.println(marge.toString());
+			
+			TableProbabilityDistribution longCalculationTable = network.computeProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+			
+			System.err.println("long for " + var);
+			System.err.println(longCalculationTable.toString());
+			
+			double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("l0"))).getValue();
+			
+			assertEquals(exp1, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("l0"))).getValue(),0.001);
+		}
+		
+		
+		{
+			DiscreteVariable var = grade;
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			
+			System.err.println("marginal for " + var);
+			System.err.println(marge.toString());
+			
+			TableProbabilityDistribution longCalculationTable = network.computeProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+			
+			System.err.println("long for " + var);
+			System.err.println(longCalculationTable.toString());
+			
+			double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g1"))).getValue();
+			double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g2"))).getValue();
+			double exp3 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g3"))).getValue();
+			
+			assertEquals(exp1, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g1"))).getValue(),0.001);
+			assertEquals(exp2, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g2"))).getValue(),0.001);
+			assertEquals(exp3, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g3"))).getValue(),0.001);
+		}
+		
+		{
+			DiscreteVariable var = sat;
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			
+			System.err.println("marginal for " + var);
+			System.err.println(marge.toString());
+			
+			TableProbabilityDistribution longCalculationTable = network.computeProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+			
+			System.err.println("long for " + var);
+			System.err.println(longCalculationTable.toString());
+			
+			double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("s0"))).getValue();
+			double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("s1"))).getValue();
+			
+			assertEquals(exp1, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("s0"))).getValue(),0.001);
+			assertEquals(exp2, marge.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("s1"))).getValue(),0.001);
+		}
+	}
+	
+	@Test
+	public void testValidateCalibration() {
+		System.err.println("testValidateCalibration");
+		
+		StudentNetwork network = StudentNetwork.create();
+
+		DiscreteVariable diff = network.getVariableByName("Difficulty");
+		DiscreteVariable intel = network.getVariableByName("Intelligence");
+		DiscreteVariable grade = network.getVariableByName("Grade");
+		DiscreteVariable sat = network.getVariableByName("SAT");
+		DiscreteVariable letter = network.getVariableByName("Letter");
+		
+
+		
+		
+		CliqueTree tree = CliqueTree.create(network);
+		
+		tree.calibrateCliqueTree();
+		tree.validateCalibration();
+		
+	}
 }

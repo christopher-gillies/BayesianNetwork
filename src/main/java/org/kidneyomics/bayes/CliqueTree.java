@@ -20,13 +20,27 @@ class CliqueTree {
 	private HashMap<TableFactor,CliqueNode> tauToNodeMap = new HashMap<TableFactor, CliqueTree.CliqueNode>();
 	private Set<CliqueNode> nodes = new HashSet<CliqueNode>();
 	private final TableBayesianNetwork network;
+	private boolean pruned = false;
+	private final HashMap<DiscreteVariable,List<TableFactor>> belifsPerVariable;
+	private final Set<DiscreteVariableValue> evidence = new HashSet<DiscreteVariableValue>();
 	
 	private CliqueTree(TableBayesianNetwork network) {
 		this.network = network;
+		this.belifsPerVariable = new HashMap<DiscreteVariable, List<TableFactor>>();
 	}
 	
-	static CliqueTree create(TableBayesianNetwork network) {
+	static CliqueTree create(TableBayesianNetwork network, DiscreteVariableValue... evidence) {
+		HashSet<DiscreteVariableValue> evi = new HashSet<DiscreteVariableValue>();
+		for(DiscreteVariableValue valVar : evidence) {
+			evi.add(valVar);
+		}
+		
+		return create(network, evi);
+	}
+	
+	static CliqueTree create(TableBayesianNetwork network, Set<DiscreteVariableValue> evidence) {
 		CliqueTree tree = new CliqueTree(network);
+		tree.evidence.addAll(evidence);
 		
 		List<DiscreteVariable> variableEliminationOrder = TableBayesianNetworkUtil.greedyVariableEliminationOrder(network, new MinNeighborsEvaluationMetric<DiscreteVariable>());
 		
@@ -47,12 +61,46 @@ class CliqueTree {
 		return tree;
 	}
 	
+	//TODO: validate calibration
+	public boolean validateCalibration() {
+		for(CliqueNode node : this.nodes) {
+			for(CliqueNode neighbor : node.neighbors()) {
+				SepSet forNeighbor = node.sepSet(neighbor);
+				TableFactor one = (TableFactor) node.belief().marginalize( forNeighbor.getSetDifferenceOfNodeAndSepSet(node)  );
+				TableFactor two = (TableFactor) neighbor.belief().marginalize( neighbor.sepSet(node).getSetDifferenceOfNodeAndSepSet(neighbor)  );
+				
+				System.err.println(one);
+				System.err.println(two);
+			}
+		}
+		return true;
+	}
+	
 	/**
 	 * assign all the factors from the bayesian network to the clique tree
 	 */
-	void assignFactorsToNodes() {
+	void assignFactorsToNodesAndInitialize() {
 		Set<TableFactor> factors = network.factors();
 		Set<TableFactor> assignedFactors = new HashSet<TableFactor>();
+		
+		if(this.evidence.size() > 0) {
+			//loop through evidence
+			
+			for(DiscreteVariableValue piece : evidence) {
+				TableNode node = network.getNode(piece.variable());
+				if(node == null) {
+					throw new IllegalArgumentException(piece.variable() + " not found in the network!");
+				}
+				//get factor
+				TableFactor factor = node.factor();
+				//remove this factor from set of factors
+				factors.remove(factor);
+				//remove non-evidence rows from factor
+				factor = (TableFactor) factor.reduce(piece);
+				//add factor back to the set
+				factors.add(factor);
+			}
+		}
 		
 		//clear factors from nodes
 		for(CliqueNode node : nodes) {
@@ -76,6 +124,15 @@ class CliqueTree {
 		if(factors.size() != assignedFactors.size()) {
 			throw new IllegalStateException("Not all factors have been assigned to the clique tree");
 		}
+		
+		initializeCliques();
+	}
+	
+	void initializeCliques() {
+		//initialize cliques
+		for(CliqueNode node : nodes) {
+			node.initialize();
+		}
 	}
 	
 	/**
@@ -98,6 +155,9 @@ class CliqueTree {
 				}
 			}
 		}
+		
+		//set state of this tree as pruned
+		pruned = true;
 		
 	}
 	
@@ -124,8 +184,10 @@ class CliqueTree {
 		node.removeNeighbor(target);
 		while(iter.hasNext()) {
 			CliqueNode next = iter.next();
-			target.addNeighbor(next, node.sepSet(next));
+			SepSet sepForNext = node.sepSet(next);
 			node.removeNeighbor(next);
+			//reversing these orders will result in a missing pointer in sep hash table for next node
+			target.addNeighbor(next, sepForNext);
 		}
 		
 		nodes.remove(node);
@@ -188,7 +250,8 @@ class CliqueTree {
 		
 		for(TableFactor message : factorsUsedToComputeTau) {
 			if(tauToNodeMap.containsKey(message)) {
-				node.addNeighbor(tauToNodeMap.get(message), new SepSet(message.scope()));
+				CliqueNode messagingNode = tauToNodeMap.get(message);
+				node.addNeighbor(messagingNode, new SepSet(message.scope()));
 			}
 		}
 		
@@ -206,14 +269,95 @@ class CliqueTree {
 	}
 	
 	
+	//algorithm 10.2
+	void calibrateCliqueTree() {
+		//clear old beliefs
+		this.belifsPerVariable.clear();
+		
+		if(!pruned) {
+			pruneNonmaximalNodes();
+		}
+		
+		//this will assign factors and initialize cliques
+		assignFactorsToNodesAndInitialize();
+		
+		for(CliqueNode node : this.nodes) {
+			
+			if(!node.hasReceivedAllMessages()) {
+				node.requestMessagesAndComputeResult();
+			}
+			
+		}
+		
+		//Store beliefs per variable
+		for(CliqueNode node : this.nodes) {
+			for(DiscreteVariable var : node.scope) {
+				if(belifsPerVariable.containsKey(var)) {
+					belifsPerVariable.get(var).add(node.belief());
+				} else {
+					List<TableFactor> beliefs = new LinkedList<TableFactor>();
+					beliefs.add(node.belief());
+					
+					belifsPerVariable.put(var, beliefs);
+				}
+			}
+		}
+		
+	}
+	
+	
+	TableProbabilityDistribution marginalProbability(DiscreteVariable var) {
+		if(this.belifsPerVariable == null || this.belifsPerVariable.size() == 0) {
+			calibrateCliqueTree();
+		}
+		
+		if(!this.belifsPerVariable.containsKey(var)) {
+			throw new IllegalArgumentException("Variable " + var + " not found!");
+		}
+		
+		TableFactor beleif = this.belifsPerVariable.get(var).get(0);
+		
+		HashSet<DiscreteVariable> variablesToMarginalizeOut = new HashSet<DiscreteVariable>();
+		variablesToMarginalizeOut.addAll(beleif.scope());
+		variablesToMarginalizeOut.remove(var);
+		
+		return TableProbabilityDistribution.create((TableFactor) beleif.marginalize(variablesToMarginalizeOut));
+	}
+	
 	class SepSet {
 		
 		private final Set<DiscreteVariable> set = new HashSet<DiscreteVariable>();
+		private final HashMap<CliqueNode,Set<DiscreteVariable>> cliqueMinusSepSet = new HashMap<CliqueNode,Set<DiscreteVariable>>();
 		
+		//set up on creation...
+		//but what if we prune....
 		SepSet(Set<DiscreteVariable> set) {
 			this.set.addAll(set);
 		}
 		
+		Set<DiscreteVariable> getSetDifferenceOfNodeAndSepSet(CliqueNode node) {
+			return this.cliqueMinusSepSet.get(node);
+		}
+		
+		void add(CliqueNode node) {
+			//create set of variables in node scope but not in the sepset
+			HashSet<DiscreteVariable> nodeMinusSepSet = new HashSet<DiscreteVariable>();
+			for(DiscreteVariable var : node.scope) {
+				if(!set.contains(var)) {
+					nodeMinusSepSet.add(var);
+				}
+			}
+			cliqueMinusSepSet.put(node, nodeMinusSepSet);
+		}
+		
+		void remove(CliqueNode node) {
+			cliqueMinusSepSet.remove(node);
+		}
+		
+		void clearAll() {
+			//this.set.clear();
+			this.cliqueMinusSepSet.clear();
+		}
 		
 		boolean setContains(DiscreteVariable... vars) {			
 			for(DiscreteVariable var : vars) {
@@ -228,6 +372,8 @@ class CliqueTree {
 		public String toString() {
 			return TableBayesianNetworkUtil.setToString(this.set);
 		}
+		
+		
 		
 	}
 	
@@ -245,12 +391,13 @@ class CliqueTree {
 		
 		private final Set<DiscreteVariable> scope = new HashSet<DiscreteVariable>();
 		private final Set<TableFactor> factors = new HashSet<TableFactor>();
-		private TableFactor initial;
+		private TableFactor initial = null;
+		private TableFactor belief = null;
 		
 		private final HashMap<CliqueNode,SepSet> neighbors = new HashMap<CliqueNode,SepSet>();
 		
-		private final HashMap<CliqueNode,TableFactor> upwardMessages = new HashMap<CliqueTree.CliqueNode, TableFactor>();
-		private final HashMap<CliqueNode,TableFactor> downwardMessages = new HashMap<CliqueTree.CliqueNode, TableFactor>();
+		private final HashMap<CliqueNode,TableFactor> sending = new HashMap<CliqueTree.CliqueNode, TableFactor>();
+		private final HashMap<CliqueNode,TableFactor> received = new HashMap<CliqueTree.CliqueNode, TableFactor>();
 		
 		/**
 		 * 
@@ -266,6 +413,11 @@ class CliqueTree {
 			return true;
 		}
 		
+		TableFactor belief() {
+			return this.belief;
+		}
+		
+		//compute the joint distribution of the initial factors
 		void initialize() {
 			//initialize
 			Iterator<TableFactor> iter = factors.iterator();
@@ -281,21 +433,27 @@ class CliqueTree {
 		}
 		
 		CliqueNode addNeighbor(CliqueNode node, SepSet sep) {
+			sep.add(node);
+			sep.add(this);
 			neighbors.put(node,sep);
 			node.neighbors.put(this,sep);
 			return this;
 		}
 		
 		CliqueNode removeNeighbor(CliqueNode node) {
-			neighbors.remove(node);
-			node.neighbors.remove(this);
-			return this;
+			if(this.neighbors.containsKey(node)) {
+				//adjust sepset 
+				SepSet sep = neighbors.get(node);
+				sep.remove(node);
+				sep.remove(this);
+				neighbors.remove(node);
+				node.neighbors.remove(this);
+				return this;
+			} else {
+				throw new IllegalArgumentException("This node does not contain: " + node.toString() );
+			}
 		}
 		
-		CliqueNode receiveMessage(CliqueNode node, TableFactor message) {
-			downwardMessages.put(node, message);
-			return this;
-		}
 		
 		SepSet sepSet(CliqueNode neighbor) {
 			return this.neighbors.get(neighbor);
@@ -315,6 +473,135 @@ class CliqueTree {
 		
 		String scopeString() {
 			return TableBayesianNetworkUtil.setToString(this.scope);
+		}
+		
+		TableFactor sendMessage(CliqueNode receiver) {
+			if(readyToSendTo(receiver)) {
+				//send message
+				receiver.receiveMessage(this, sending.get(receiver));
+			} else {
+				//check if ready
+				for(CliqueNode sender : this.neighbors.keySet()) {
+					//we do not request a message from the node we are trying to send to
+					if(sender.equals(receiver)) {
+						continue;
+					}
+					
+					if(!this.receivedMessageFrom(sender)) {
+						//request message from the required sender
+						//this recursion will terminate b/c of leaf nodes
+						sender.requestMessageToBeSent(this);
+					}
+				}
+				
+				//compute
+				//SP-message procedure from Algorithm 10.1
+				
+				//compute product
+				TableFactor current = this.initial;
+				for(CliqueNode sender : this.neighbors.keySet()) {
+					//we do not use the message from the node we are trying to send to
+					//this would be circular
+					if(sender.equals(receiver)) {
+						continue;
+					}
+					
+					current = (TableFactor) current.product(this.received.get(sender));	
+				}
+				//marginalize variables not in sepset
+				
+				/*
+				 * 
+				 * 
+				 *    receiver1<--->sepset1<--->node<--->sepset2<--->receiver2
+				 * 
+				 */
+				SepSet sepSetForReceiver = sepSet(receiver);
+				Set<DiscreteVariable> setDifference = sepSetForReceiver.getSetDifferenceOfNodeAndSepSet(this);
+				if(setDifference == null) {
+					throw new IllegalStateException("No set found for: " + this.toString());
+				}
+				current = (TableFactor) current.marginalize(setDifference);
+				this.sending.put(receiver, current);
+				
+				//send message
+				receiver.receiveMessage(this, current);
+			}
+			
+			return this.sending.get(receiver);
+		}
+		
+		void requestMessageToBeSent(CliqueNode requester) {
+			//send the message to the requester
+			sendMessage(requester);
+		}
+		
+		void receiveMessage(CliqueNode sender, TableFactor message) {
+			if(this.neighbors.keySet().contains(sender)) {
+				this.received.put(sender, message);
+			} else {
+				throw new IllegalArgumentException("The following node is not a neighbor of " + this.toString() + "\n" + sender.toString());
+			}
+		}
+		
+		/**
+		 * 
+		 * @param receiver 
+		 * @return true if this clique is ready to send a message to the receiver, false otherwise
+		 */
+		boolean readyToSendTo(CliqueNode receiver) {
+			if(this.neighbors.keySet().contains(receiver)) {
+				
+				if(this.sending.containsKey(receiver)) {
+					return true;
+				} else {
+					return false;
+				}
+				
+			} else {
+				throw new IllegalArgumentException("The following node is not a neighbor of " + this.toString() + "\n" + receiver.toString());
+			}
+		}
+		
+		/**
+		 * 
+		 * @param sender
+		 * @return true if this clique has received a message from the sender
+		 */
+		boolean receivedMessageFrom(CliqueNode sender) {
+			if(this.neighbors.keySet().contains(sender)) {
+				if(this.received.containsKey(sender)) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				throw new IllegalArgumentException("The following node is not a neighbor of " + this.toString() + "\n" + sender.toString());
+			}
+		}
+		
+		/**
+		 * 
+		 * @return true if this clique has received all its messages from its neighbors
+		 */
+		boolean hasReceivedAllMessages() {
+			return this.received.keySet().containsAll(this.neighbors());
+		}
+		
+		/**
+		 * Request all messages from neighbors if they have not already been sent
+		 */
+		TableFactor requestMessagesAndComputeResult() {
+			for(CliqueNode sender : neighbors.keySet()) {
+				if(!receivedMessageFrom(sender)) {
+					sender.requestMessageToBeSent(this);
+				}
+			}
+			belief = initial;
+			for(TableFactor message : this.received.values()) {
+				belief = (TableFactor) belief.product(message);
+			}
+			return belief;
 		}
 		
 		@Override
