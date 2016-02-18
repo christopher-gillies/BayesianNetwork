@@ -204,7 +204,7 @@ public class TableBayesianNetworkUtil {
 		eliminationOrder.remove(queryVar);
 		
 		
-		return sumProductVariableElimination(factors,eliminationOrder);
+		return sumProductVariableElimination(factors,eliminationOrder, null);
 	}
 	
 	/***
@@ -214,20 +214,21 @@ public class TableBayesianNetworkUtil {
 	 * @return
 	 */
 	public static TableProbabilityDistribution sumProductVariableElimination(TableBayesianNetwork network, List<DiscreteVariable> eliminationOrder) {
-		return sumProductVariableElimination(network.factors(), eliminationOrder);
+		return sumProductVariableElimination(network.factors(), eliminationOrder, null);
 	}
 	
 	/**
 	 * Algorithm 9.1
 	 * @param factors -- factors from a bayesian network
 	 * @param eliminationOrder -- order of variables to eliminate
+	 * @param tree - CliqueTree and optional parameter if you want a clique tree result
 	 * @return
 	 */
-	public static TableProbabilityDistribution sumProductVariableElimination(Set<TableFactor> factors, List<DiscreteVariable> eliminationOrder) {
+	public static TableProbabilityDistribution sumProductVariableElimination(Set<TableFactor> factors, List<DiscreteVariable> eliminationOrder, CliqueTree tree) {
 		
 		for(DiscreteVariable var : eliminationOrder) {
 			//sum product eliminate
-			factors = sumProductEliminateVar(factors,var);
+			factors = sumProductEliminateVar(factors,var, tree);
 		}
 		
 		//compute result product
@@ -240,38 +241,65 @@ public class TableBayesianNetworkUtil {
 		return TableProbabilityDistribution.create(current);
 	}
 	
-	public static Set<TableFactor> sumProductEliminateVar(Set<TableFactor> factors, DiscreteVariable varToEliminate) {
+	/**
+	 * 
+	 * @param factors
+	 * @param varToEliminate
+	 * @return factors with varToEliminate marginalized out
+	 */
+	public static Set<TableFactor> sumProductEliminateVar(Set<TableFactor> factors, DiscreteVariable varToEliminate, CliqueTree tree) {
 		
 		//all factors that contain variable to be eliminated in their scope
-		Set<TableFactor> factorPrime = new HashSet<TableFactor>();
+		Set<TableFactor> factorsPrime = new HashSet<TableFactor>();
 		for(TableFactor factor : factors) {
 			if(factor.scope().contains(varToEliminate)) {
-				factorPrime.add(factor);
+				factorsPrime.add(factor);
 			}
 		}
 		
 		//Factors not in the scope of varToEliminate
 		Set<TableFactor> factorDoublePrime = new HashSet<TableFactor>();
 		for(TableFactor factor : factors) {
-			if(!factorPrime.contains(factor)) {
+			if(!factorsPrime.contains(factor)) {
 				factorDoublePrime.add(factor);
 			}
 		}
 		
 		//compute product
-		Iterator<TableFactor> iter = factorPrime.iterator();
-		TableFactor tau = iter.next();
+		Iterator<TableFactor> iter = factorsPrime.iterator();
+		TableFactor tauBeforeMarginalize = iter.next();
 		while(iter.hasNext()) {
-			tau = (TableFactor) tau.product(iter.next());
+			tauBeforeMarginalize = (TableFactor) tauBeforeMarginalize.product(iter.next());
 		}
+		
+		
 		//compute sum
-		tau = (TableFactor) tau.marinalize(varToEliminate);
+		TableFactor tauAfterMarginalize = (TableFactor) tauBeforeMarginalize.marinalize(varToEliminate);
+		
+		//update cliquetree
+		if(tree != null) {
+			//create node with scope tau before marginalize and sa
+			tree.addNode(tauBeforeMarginalize, tauAfterMarginalize, factorsPrime);
+		}
 		
 		//add tou to factorDoublePrime
-		factorDoublePrime.add(tau);
+		factorDoublePrime.add(tauAfterMarginalize);
 		
 		return factorDoublePrime;
 		
+	}
+	
+	
+	public static <T> String setToString(Set<T> set) {
+		StringBuilder sb = new StringBuilder();
+		Iterator<T> iter = set.iterator();
+		while(iter.hasNext()) {
+			sb.append(iter.next().toString());
+			if(iter.hasNext()) {
+				sb.append(", ");
+			}
+		}
+		return sb.toString();
 	}
 	
 }
