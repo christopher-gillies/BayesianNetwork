@@ -521,7 +521,7 @@ public class CliqueTreeTest {
 		CliqueTree tree = CliqueTree.create(network);
 		
 		tree.calibrateCliqueTree();
-		tree.validateCalibration();
+		assertTrue(tree.validateCalibration());
 		
 	}
 }

@@ -83,6 +83,10 @@ public class Row implements Cloneable {
 		return this.variableValuesSet.containsAll(varVals);
 	}
 	
+	public Collection<DiscreteVariableValue> variableValueSet() {
+		return this.variableValuesSet;
+	}
+	
 	public DiscreteVariableValue getVariableValue(DiscreteVariable variable) {
 		return variableValuesMap.get(variable);
 	}

@@ -69,10 +69,37 @@ class CliqueTree {
 				TableFactor one = (TableFactor) node.belief().marginalize( forNeighbor.getSetDifferenceOfNodeAndSepSet(node)  );
 				TableFactor two = (TableFactor) neighbor.belief().marginalize( neighbor.sepSet(node).getSetDifferenceOfNodeAndSepSet(neighbor)  );
 				
+				System.err.println("Table one");
 				System.err.println(one);
+				
+				
+				System.err.println("Table two");
 				System.err.println(two);
+				
+				if( one.rows().size() != two.rows().size() ) {
+					throw new IllegalStateException("Cliques are not calibrated b/c they have a different number of rows");
+				}
+				
+				int count = 0;
+				for(Row rowA : one.rows()) {
+					for(Row rowB : two.rows()) {
+						if(rowA.hasAllDiscreteVariableValues(rowB.variableValueSet())) {
+							count++;
+							if( Math.abs(rowA.getValue() - rowB.getValue()) > 0.0001 ) {
+								throw new IllegalStateException("Clique tree is not calibrated");
+							}
+						}
+					}
+				}
+				
+				if(count != one.rows().size()) {
+					throw new IllegalStateException("Not enough matching rows");
+				}
 			}
 		}
+		
+	
+		
 		return true;
 	}
 	
