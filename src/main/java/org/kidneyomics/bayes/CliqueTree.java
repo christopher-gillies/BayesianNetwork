@@ -24,7 +24,7 @@ class CliqueTree {
 	private boolean pruned = false;
 	private final HashMap<DiscreteVariable,List<TableFactor>> belifsPerVariable;
 	private final Set<DiscreteVariableValue> evidence = new HashSet<DiscreteVariableValue>();
-	
+	private boolean calibrated = false;
 	private CliqueTree(TableBayesianNetwork network) {
 		this.network = network;
 		this.belifsPerVariable = new HashMap<DiscreteVariable, List<TableFactor>>();
@@ -312,6 +312,9 @@ class CliqueTree {
 		return sb.toString();
 	}
 	
+	boolean isCalibrated() {
+		return calibrated;
+	}
 	
 	//algorithm 10.2
 	void calibrateCliqueTree() {
@@ -327,7 +330,7 @@ class CliqueTree {
 		
 		for(CliqueNode node : this.nodes) {
 			
-			if(!node.hasReceivedAllMessages()) {
+			if(!node.hasReceivedAllMessages() || node.belief() == null) {
 				node.requestMessagesAndComputeResult();
 			}
 			
@@ -346,6 +349,8 @@ class CliqueTree {
 				}
 			}
 		}
+		
+		calibrated = true;
 		
 	}
 	
@@ -388,6 +393,11 @@ class CliqueTree {
 		TableFactor beliefToUse = null;
 		int size = Integer.MAX_VALUE;
 		for(CliqueNode node : this.nodes) {
+			
+			if(node.belief() == null) {
+				throw new IllegalStateException("Please calibrate the tree");
+			}
+			
 			if(node.belief().rows().size() < size) {
 				size = node.belief().rows().size();
 				beliefToUse = node.belief();

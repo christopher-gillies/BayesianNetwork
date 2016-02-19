@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.nio.channels.IllegalSelectorException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -403,9 +404,54 @@ public class TableBayesianNetworkUtil {
 		}
 	}
 	
-	public static double likelihood(TableBayesianNetwork network, List<DiscreteVariable> eliminationOrder, DiscreteInstance instance, boolean logScale) {
+	/**
+	 * 
+	 * @param network -- the network to use
+	 * @param eliminationOrder -- the variable elimination order
+	 * @param instances  -- instances of data
+	 * @param logScale -- return in log scale
+	 * @return the likelihood of the data
+	 */
+	public static double likelihood(TableBayesianNetwork network, List<DiscreteVariable> eliminationOrder, List<DiscreteInstance> instances, boolean logScale) {
 		
+		List<CliqueTree> trees = new LinkedList<CliqueTree>();
 		
-		return 0;
+		for(DiscreteInstance instance : instances) {
+			CliqueTree tree = CliqueTree.createFromEvidenceAndOrder(network, instance.evidence(), eliminationOrder);
+			trees.add(tree);
+		}
+		
+		return likelihood(trees, logScale);
+		
+
+	}
+	
+	/**
+	 * 
+	 * @param network -- the network to use
+	 * @param instances  -- instances of data
+	 * @param logScale -- return in log scale
+	 * @return the likelihood of the data
+	 */
+	public static double likelihood(TableBayesianNetwork network, List<DiscreteInstance> instances, boolean logScale) {
+		List<DiscreteVariable> eliminationOrder = greedyVariableEliminationOrder(network, new MinNeighborsEvaluationMetric<DiscreteVariable>());
+		return likelihood(network, eliminationOrder, instances, logScale);
+	}
+	
+	public static double likelihood(Collection<CliqueTree> trees, boolean logScale) {
+		double res = 0;
+		
+		for(CliqueTree tree : trees) {
+			if(!tree.isCalibrated()) {
+				tree.calibrateCliqueTree();
+			}
+			res += tree.probabilityOfEvidenceMarginalizedOverMissingValues(true);
+		}
+		
+		if(logScale) {
+			return res;
+		} else {
+			return Math.exp(res);
+		}
 	}
 }

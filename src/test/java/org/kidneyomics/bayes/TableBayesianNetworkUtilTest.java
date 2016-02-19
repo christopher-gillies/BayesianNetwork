@@ -10,7 +10,7 @@ import org.kidneyomics.bayes.example.StudentNetwork;
 import org.kidneyomics.graph.MinNeighborsEvaluationMetric;
 import org.kidneyomics.graph.UndirectedNode;
 
-public class BayesianNetworkUtilTest {
+public class TableBayesianNetworkUtilTest {
 
 	@Test
 	public void testCreateUndirectedGraph() {
@@ -459,6 +459,37 @@ public class BayesianNetworkUtilTest {
 				DiscreteVariableValue.create(grade, grade.getValueByName("g3"))).getValue(),0.01);
 		assertEquals(0.01,letterNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1")),
 				DiscreteVariableValue.create(grade, grade.getValueByName("g3"))).getValue(),0.01);
+		
+	}
+	
+	
+	@Test
+	public void testCalculateLikelihood() {
+		System.err.println("testCalculateLikelihood");
+		StudentNetwork network = StudentNetwork.create();
+		
+		List<DiscreteVariable> order = TableBayesianNetworkUtil.topologicalSortAsDiscreteVariableList(network);
+		List<DiscreteInstance> sample = TableBayesianNetworkUtil.forwardSampling(network, 100);
+		
+		assertEquals(100,sample.size());
+		
+		double logLikelihood = TableBayesianNetworkUtil.likelihood(network, sample, true);
+		
+		System.err.println(logLikelihood);
+		
+		List<DiscreteInstance> doubleData = sample.subList(0, 2);
+		assertEquals(2,doubleData.size());
+		
+		double doubleLikelihood = TableBayesianNetworkUtil.likelihood(network, doubleData, false);
+		
+		//should be complete
+		TableFactor res1 = (TableFactor) network.computeJoint().reduce(doubleData.get(0).evidence());
+		TableFactor res2 = (TableFactor) network.computeJoint().reduce(doubleData.get(1).evidence());
+		
+		double res1Prob = res1.getFirstRowValue();
+		double res2Prob = res2.getFirstRowValue();
+		
+		assertEquals(res1Prob * res2Prob,doubleLikelihood,0.0001);
 		
 	}
 
