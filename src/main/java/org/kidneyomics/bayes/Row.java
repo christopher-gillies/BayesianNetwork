@@ -20,6 +20,7 @@ public class Row implements Cloneable {
 	
 	private double value;
 	
+	
 	private Row(double value, Collection<DiscreteVariableValue> variableValues) {
 		this.variableValuesSet = new HashSet<DiscreteVariableValue>();
 		variableValuesSet.addAll(variableValues);

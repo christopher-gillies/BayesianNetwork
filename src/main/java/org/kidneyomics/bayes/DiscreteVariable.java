@@ -1,5 +1,6 @@
 package org.kidneyomics.bayes;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -44,6 +45,10 @@ public class DiscreteVariable implements Variable {
 	
 	public DiscreteValue getValueByName(String name) {
 		return this.values.get(name);
+	}
+	
+	public Collection<DiscreteValue> values() {
+		return this.values.values();
 	}
 	
 	

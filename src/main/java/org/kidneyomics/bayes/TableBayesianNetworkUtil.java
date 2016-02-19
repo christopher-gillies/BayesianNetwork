@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.nio.channels.IllegalSelectorException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,9 +14,13 @@ import org.kidneyomics.graph.DirectedNode;
 import org.kidneyomics.graph.EvaluationMetric;
 import org.kidneyomics.graph.MinNeighborsEvaluationMetric;
 import org.kidneyomics.graph.UndirectedNode;
+import org.kidneyomics.random.DefaultRandomNumberSerivce;
+import org.kidneyomics.random.RandomNumberService;
 import org.kidneyomics.graph.TopologicalSorter;
 
 public class TableBayesianNetworkUtil {
+	
+	private final static RandomNumberService randService = new DefaultRandomNumberSerivce();
 	
 	/**
 	 * 
@@ -53,6 +58,18 @@ public class TableBayesianNetworkUtil {
 	
 	public static List<TableNode> topologicalSort(TableBayesianNetwork network) {
 		return TopologicalSorter.sort(createGraphFromTableNetwork(network));
+	}
+	
+	public static List<DiscreteVariable> topologicalSortAsDiscreteVariableList(TableBayesianNetwork network) {
+		List<TableNode> nodes = TopologicalSorter.sort(createGraphFromTableNetwork(network));
+		
+		ArrayList<DiscreteVariable> vars = new ArrayList<DiscreteVariable>(nodes.size());
+		
+		for(TableNode node : nodes) {
+			vars.add(node.variable());
+		}
+		
+		return vars;
 	}
 	
 	
@@ -302,4 +319,87 @@ public class TableBayesianNetworkUtil {
 		return sb.toString();
 	}
 	
+	public static DiscreteInstance forwardSample(TableBayesianNetwork network, List<TableNode> sortedList) {
+		
+		DiscreteInstance instance = DiscreteInstance.create();
+		for(TableNode node : sortedList) {
+			
+			List<Row> rows = null;
+			if(node.parents().size() == 0) {
+				//no parents so include all rows
+				rows = node.cpd().getFactor().rows();
+				
+			} else {
+				//get list of parents values
+				HashSet<DiscreteVariableValue> currentValues = new HashSet<DiscreteVariableValue>();
+				for(TableNode parent : node.parents()) {
+					DiscreteVariableValue parVal = instance.get(parent.variable());
+					if(parVal == null) {
+						throw new IllegalArgumentException("Graph not topologically sorted!");
+					}
+					currentValues.add(parVal);
+				}
+				
+				//get rows corresponding to these parental values
+				rows = node.cpd().getFactor().getRowsByValues(false, currentValues);
+				
+			}
+			
+			Map<DiscreteVariableValue,Double> probsPerVarValue = new HashMap<DiscreteVariableValue, Double>();
+			//store map for every variable of value of nodes variable and its correponding probability
+			for(Row row : rows) {
+				DiscreteVariableValue varValue = row.getVariableValue(node.variable());
+				if(probsPerVarValue.containsKey(varValue)) {
+					throw new IllegalStateException("not all parents selected");
+				}
+				probsPerVarValue.put(varValue, row.getValue());
+			}
+			
+			if(probsPerVarValue.size() != node.variable().values().size())  {
+				throw new IllegalStateException("not all values for node are included");
+			}
+			
+			DiscreteVariableValue randVarVal = randService.emit(probsPerVarValue);
+			
+			instance.put(node.variable(), randVarVal);
+		}
+		
+		
+		return instance;
+	}
+	
+	public static DiscreteInstance forwardSample(TableBayesianNetwork network) {
+		
+		List<TableNode> sortedList = topologicalSort(network);
+		
+		return forwardSample(network,sortedList);
+	}
+	
+	/**
+	 * 
+	 * @param network -- table bayesian network
+	 * @param number -- number of samples to generate
+	 * @return a list of generated samples from the network
+	 * 
+	 */
+	public static List<DiscreteInstance> forwardSampling(TableBayesianNetwork network, int number) {
+		
+		List<TableNode> sortedList = topologicalSort(network);
+		List<DiscreteInstance> list = new ArrayList<DiscreteInstance>(number);
+		
+		
+		for(int i = 0; i < number; i++) {
+			list.add(forwardSample(network,sortedList));
+		}
+		
+		return list;
+	}
+	
+	
+	public static void computeMaximumLikelihoodEstimation(TableBayesianNetwork network, List<DiscreteInstance> instances) {
+		for(TableNode node : network.nodes()) {
+			Map<Row,Double> stats = node.cpd().computeSufficientStatisticsCompleteData(instances);
+			node.cpd().maximumLikelihoodEstimation(stats);
+		}
+	}
 }

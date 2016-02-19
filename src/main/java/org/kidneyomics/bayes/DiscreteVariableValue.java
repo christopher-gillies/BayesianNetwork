@@ -30,6 +30,10 @@ public class DiscreteVariableValue implements VariableValue<DiscreteVariable,Dis
 		return key;
 	}
 	
+	public boolean isMissing() {
+		return this.value.isMissing();
+	}
+	
 	@Override
 	public String toString() {
 		return getKey();

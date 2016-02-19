@@ -12,10 +12,12 @@ public class TableConditionalProbabilityDistribution implements ProbabilityDistr
 
 	private final TableFactor table;
 	private final DiscreteVariable unconditionedVariable;
+	//private final Map<Row,Double> sufficientStatistics;
 	
 	private TableConditionalProbabilityDistribution(TableFactor table, DiscreteVariable unconditionedVariable) {
 		this.table = table;
 		this.unconditionedVariable = unconditionedVariable;
+		//this.sufficientStatistics = new HashMap<Row,Double>();
 		if(!isNormalized()) {
 			normalize();
 		}
@@ -25,7 +27,7 @@ public class TableConditionalProbabilityDistribution implements ProbabilityDistr
 		return this.table;
 	}
 	
-	public DiscreteVariable getUnconditionedVaraible() {
+	public DiscreteVariable getUnconditionedVariable() {
 		return unconditionedVariable;
 	}
 	
@@ -33,6 +35,57 @@ public class TableConditionalProbabilityDistribution implements ProbabilityDistr
 		return new TableConditionalProbabilityDistribution(table,unconditionedVariable);
 	}
 
+	
+	public Map<Row,Double> computeSufficientStatisticsCompleteData(List<DiscreteInstance> instances) {
+		
+		Map<Row,Double> sufficientStatistics = new HashMap<Row,Double>();
+		
+		//initialize
+		for(Row row : table.rows()) {
+			sufficientStatistics.put(row, 0.0);
+		}
+		
+		for(DiscreteInstance instance : instances) {
+			
+			if(instance.containsMissing()) {
+				throw new IllegalArgumentException("Error this routine set up for complete data");
+			}
+			
+			// get subset of variables for this node
+			List<DiscreteVariableValue> varValsForInstance = instance.subset(table.scope());
+			
+			//go through each row
+			for(Row row : table.rows()) {
+				//if the row matches the input then add one to the count
+				if(row.hasAllDiscreteVariableValues(varValsForInstance)) {
+					double currentVal = sufficientStatistics.get(row);
+					
+					sufficientStatistics.put(row, currentVal + 1.0);
+				}
+			}
+		}
+		
+		return sufficientStatistics;
+			
+	}
+	
+	public void maximumLikelihoodEstimation(Map<Row,Double> sufficientStatistics) {
+		//create row buckets
+		HashMap<String,List<Row>> map = createBucketsOfRows();
+		
+		//normalize
+		for(List<Row> rows : map.values()) {
+			for(Row row : rows) {
+				if(!sufficientStatistics.containsKey(row)) {
+					throw new IllegalArgumentException("sufficientStatistics map does not contain row");
+				}
+				double sufficientStat = sufficientStatistics.get(row);
+				
+				row.setValue( sufficientStat );
+			}
+			ProbabilityDistributionUtil.normalize(rows);
+		}
+	}
 	
 	/**
 	 * 

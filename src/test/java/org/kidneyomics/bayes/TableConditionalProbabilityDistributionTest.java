@@ -3,8 +3,11 @@ package org.kidneyomics.bayes;
 import static org.junit.Assert.*;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
+import org.kidneyomics.bayes.example.StudentNetwork;
 
 public class TableConditionalProbabilityDistributionTest {
 
@@ -90,6 +93,33 @@ public class TableConditionalProbabilityDistributionTest {
 		assertEquals(0.01, table.getRowsByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1")),
 				DiscreteVariableValue.create(grade, grade.getValueByName("g3"))
 				).get(0).getValue(),0.001);
+	}
+	
+	
+	
+	@Test
+	public void testCalculateSufficientStatistics() {
+		System.err.println("Generate Sample");
+		
+		
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable diff = network.getVariableByName("Difficulty");
+		
+		List<DiscreteInstance> sample = TableBayesianNetworkUtil.forwardSampling(network, 100000);
+		
+		assertEquals(100000,sample.size());
+		
+		TableNode diffNode = network.getNode(diff);
+		
+		Map<Row,Double> stats = diffNode.cpd().computeSufficientStatisticsCompleteData(sample);
+		
+		diffNode.cpd().maximumLikelihoodEstimation(stats);
+		
+		System.err.println(diffNode.cpd());
+		
+		assertEquals(0.6,diffNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).getValue(),0.01);
+		assertEquals(0.4,diffNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d1"))).getValue(),0.01);
 	}
 
 }

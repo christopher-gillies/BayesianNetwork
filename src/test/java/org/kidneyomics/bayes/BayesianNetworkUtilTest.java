@@ -367,5 +367,99 @@ public class BayesianNetworkUtilTest {
 		//assertEquals(exp2, dist.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1"))).getValue(),0.0001);
 	}
 	
+	
+	@Test
+	public void testGenerateSample() {
+		System.err.println("Generate Sample");
+		StudentNetwork network = StudentNetwork.create();
+		
+		List<DiscreteVariable> order = TableBayesianNetworkUtil.topologicalSortAsDiscreteVariableList(network);
+		List<DiscreteInstance> sample = TableBayesianNetworkUtil.forwardSampling(network, 100);
+		
+		assertEquals(100,sample.size());
+		
+		System.err.println(sample.get(0).titleRow(order));
+		for(DiscreteInstance instance : sample) {
+			assertTrue(instance.containsAllKeys(order));
+			System.err.println(instance.toString(order));
+		}
+	}
+	
+	
+	@Test
+	public void testCalculateMaximum() {
+		System.err.println("Test maximum likelihood estimation");
+		
+		
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable diff = network.getVariableByName("Difficulty");
+		DiscreteVariable intel = network.getVariableByName("Intelligence");
+		DiscreteVariable sat = network.getVariableByName("SAT");
+		
+		DiscreteVariable letter = network.getVariableByName("Letter");
+		DiscreteVariable grade = network.getVariableByName("Grade");
+		
+		List<DiscreteInstance> sample = TableBayesianNetworkUtil.forwardSampling(network, 100000);
+		
+		
+		TableBayesianNetworkUtil.computeMaximumLikelihoodEstimation(network, sample);
+		
+		
+		TableNode diffNode = network.getNode(diff);
+		
+		
+		System.err.println(diffNode.cpd());
+		
+		assertEquals(0.6,diffNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).getValue(),0.01);
+		assertEquals(0.4,diffNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d1"))).getValue(),0.01);
+		
+		
+		TableNode intelNode = network.getNode(intel);
+		
+		
+		System.err.println(intelNode.cpd());
+		
+		assertEquals(0.7,intelNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(intel, intel.getValueByName("i0"))).getValue(),0.01);
+		assertEquals(0.3,intelNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(intel, intel.getValueByName("i1"))).getValue(),0.01);
+		
+		
+		TableNode satNode = network.getNode(sat);
+		
+		
+		System.err.println(satNode.cpd());
+		
+		assertEquals(0.95,satNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(sat, sat.getValueByName("s0")),
+				DiscreteVariableValue.create(intel, intel.getValueByName("i0"))).getValue(),0.01);
+		assertEquals(0.05,satNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(sat, sat.getValueByName("s1")),
+				DiscreteVariableValue.create(intel, intel.getValueByName("i0"))).getValue(),0.01);
+		assertEquals(0.2,satNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(sat, sat.getValueByName("s0")),
+				DiscreteVariableValue.create(intel, intel.getValueByName("i1"))).getValue(),0.01);
+		assertEquals(0.8,satNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(sat, sat.getValueByName("s1")),
+				DiscreteVariableValue.create(intel, intel.getValueByName("i1"))).getValue(),0.01);
+		
+		
+		
+		TableNode letterNode = network.getNode(letter);
+		
+		
+		System.err.println(letterNode);
+		
+		assertEquals(0.1,letterNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l0")),
+				DiscreteVariableValue.create(grade, grade.getValueByName("g1"))).getValue(),0.01);
+		assertEquals(0.9,letterNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1")),
+				DiscreteVariableValue.create(grade, grade.getValueByName("g1"))).getValue(),0.01);
+		
+		assertEquals(0.4,letterNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l0")),
+				DiscreteVariableValue.create(grade, grade.getValueByName("g2"))).getValue(),0.01);
+		assertEquals(0.6,letterNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1")),
+				DiscreteVariableValue.create(grade, grade.getValueByName("g2"))).getValue(),0.01);
+		
+		assertEquals(0.99,letterNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l0")),
+				DiscreteVariableValue.create(grade, grade.getValueByName("g3"))).getValue(),0.01);
+		assertEquals(0.01,letterNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1")),
+				DiscreteVariableValue.create(grade, grade.getValueByName("g3"))).getValue(),0.01);
+		
+	}
 
 }

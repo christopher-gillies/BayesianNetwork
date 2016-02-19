@@ -1,8 +1,10 @@
 package org.kidneyomics.bayes;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class TableNode {
 	
@@ -10,6 +12,7 @@ public class TableNode {
 	private final TableConditionalProbabilityDistribution cpd;
 	private final List<TableNode> parents;
 	private final List<TableNode> children;
+
 	
 	private TableNode(DiscreteVariable variable, TableFactor factor) {
 		this.variable = variable;
