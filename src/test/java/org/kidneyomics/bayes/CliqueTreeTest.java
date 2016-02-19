@@ -299,7 +299,7 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = diff;
-			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
 			
 			System.err.println("marginal for" + var);
 			System.err.println(marge.toString());
@@ -316,7 +316,7 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = sat;
-			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
@@ -334,7 +334,7 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = intel;
-			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
@@ -352,7 +352,7 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = letter;
-			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
@@ -370,7 +370,7 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = grade;
-			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
@@ -409,7 +409,7 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = diff;
-			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
@@ -428,7 +428,7 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = intel;
-			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
@@ -447,7 +447,7 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = letter;
-			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
@@ -465,7 +465,7 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = grade;
-			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
@@ -486,7 +486,7 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = sat;
-			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
+			TableProbabilityDistribution marge = tree.marginalProbability(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());

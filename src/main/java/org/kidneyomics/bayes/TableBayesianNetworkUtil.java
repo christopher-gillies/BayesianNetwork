@@ -454,4 +454,44 @@ public class TableBayesianNetworkUtil {
 			return Math.exp(res);
 		}
 	}
+	
+	
+	public static void expectationMaximizationAlgorithm(TableBayesianNetwork network, List<DiscreteInstance> instances) {
+		
+		double oldLikelihood = 0;
+		double currentLikelihood = 0;
+		
+		List<DiscreteVariable> eliminationOrder = greedyVariableEliminationOrder(network, new MinNeighborsEvaluationMetric<DiscreteVariable>());
+		
+		for(int i = 0; i < 1000; i++) {
+			
+			List<CliqueTree> trees = new LinkedList<CliqueTree>();
+			for(DiscreteInstance instance : instances) {
+				CliqueTree tree = CliqueTree.createFromEvidenceAndOrder(network, instance.evidence(), eliminationOrder);
+				tree.calibrateCliqueTree();
+				trees.add(tree);
+			}
+			oldLikelihood = currentLikelihood;
+			currentLikelihood = likelihood(trees,true);
+			
+			//check for error state
+			if(oldLikelihood < currentLikelihood) {
+				throw new IllegalStateException("Error new likelihood > than old");
+			}
+			
+			//check for convergence
+			if(i > 2 && oldLikelihood - currentLikelihood < 0.0001) {
+				break;
+			}
+			
+			//compute sufficient statistics
+			for(TableNode node : network.nodes()) {
+				Map<Row,Double> stats = node.cpd().computeSufficientStatisticsMissingData(trees);
+				node.cpd().maximumLikelihoodEstimation(stats);
+			}
+			
+			
+			
+		}
+	}
 }

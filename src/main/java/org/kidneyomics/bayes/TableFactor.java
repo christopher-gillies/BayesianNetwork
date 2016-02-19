@@ -308,5 +308,14 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 			return null;
 		}
 	}
+	
+	public Row getRowByValues(boolean clone, Set<DiscreteVariableValue> variableValues) {
+		List<Row> result = getRowsByValues(clone,variableValues);
+		if(result.size() > 0) {
+			return getRowsByValues(clone,variableValues).get(0);
+		} else {
+			return null;
+		}
+	}
 
 }

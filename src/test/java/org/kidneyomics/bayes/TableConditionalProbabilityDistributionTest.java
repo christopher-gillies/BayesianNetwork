@@ -3,6 +3,7 @@ package org.kidneyomics.bayes;
 import static org.junit.Assert.*;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -120,6 +121,47 @@ public class TableConditionalProbabilityDistributionTest {
 		}
 		
 		assertEquals(100000,sum,0.0001);
+		
+		diffNode.cpd().maximumLikelihoodEstimation(stats);
+		
+		System.err.println(diffNode.cpd());
+		
+		assertEquals(0.6,diffNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).getValue(),0.01);
+		assertEquals(0.4,diffNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d1"))).getValue(),0.01);
+	}
+	
+	
+	@Test
+	public void testCalculateSufficientStatisticsMissing() {
+		System.err.println("testCalculateSufficientStatisticsMissing");
+		
+		
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable diff = network.getVariableByName("Difficulty");
+		
+		List<DiscreteInstance> sample = TableBayesianNetworkUtil.forwardSampling(network, 1000);
+		
+		assertEquals(1000,sample.size());
+		
+		TableNode diffNode = network.getNode(diff);
+		
+		List<CliqueTree> trees = new LinkedList<CliqueTree>();
+		
+		for(DiscreteInstance instance : sample) {
+			CliqueTree tree = CliqueTree.createFromEvidence(network, instance.evidence());
+			tree.calibrateCliqueTree();
+			trees.add(tree);
+		}
+		
+		Map<Row,Double> stats = diffNode.cpd().computeSufficientStatisticsMissingData(trees);
+		
+		double sum = 0;
+		for(Row row : stats.keySet()) {
+			sum += stats.get(row);
+		}
+		
+		assertEquals(1000,sum,0.0001);
 		
 		diffNode.cpd().maximumLikelihoodEstimation(stats);
 		

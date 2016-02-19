@@ -114,7 +114,7 @@ public class Row implements Cloneable {
 		return this.variableValuesSet.containsAll(varVals);
 	}
 	
-	public Collection<DiscreteVariableValue> variableValueSet() {
+	public Set<DiscreteVariableValue> variableValueSet() {
 		return this.variableValuesSet;
 	}
 	

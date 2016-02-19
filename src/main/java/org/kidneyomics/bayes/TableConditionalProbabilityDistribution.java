@@ -1,5 +1,6 @@
 package org.kidneyomics.bayes;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -76,6 +77,43 @@ public class TableConditionalProbabilityDistribution implements ProbabilityDistr
 		
 		return sufficientStatistics;
 			
+	}
+	
+	
+	public Map<Row,Double> computeSufficientStatisticsMissingData(Collection<CliqueTree> trees) {
+		
+		Map<Row,Double> sufficientStatistics = new HashMap<Row,Double>();
+		
+		//initialize
+		for(Row row : table.rows()) {
+			sufficientStatistics.put(row, 0.0);
+		}
+		
+		for(CliqueTree tree : trees) {
+			//go through each row
+			double totalContribution = 0;
+			for(Row row : table.rows()) {
+
+				
+				//if the row matches the input then add one to the count
+				//TODO: only select rows that match
+				//if(row.hasAllDiscreteVariableValues(tree.evidence())) {
+					double currentVal = sufficientStatistics.get(row);
+					//calculate the joint probability of the variable and its parents
+					//since the table scope is used to find the clique node all the rows discrete values shoudl be there
+					double probability = tree.jointProbabilityOfVariables(this.table.scope()).getRowByValues(false, row.variableValueSet()).getValue();
+					totalContribution += probability;
+					sufficientStatistics.put(row, currentVal + probability);
+					
+				//}
+			}
+			
+			if(Math.abs(totalContribution - 1) > 0.001) {
+				throw new IllegalStateException("Error total contribution is not 1!");
+			}
+		}
+		
+		return sufficientStatistics;
 	}
 	
 	public void maximumLikelihoodEstimation(Map<Row,Double> sufficientStatistics) {

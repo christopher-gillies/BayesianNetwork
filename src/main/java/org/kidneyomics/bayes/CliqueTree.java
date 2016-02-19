@@ -69,9 +69,11 @@ class CliqueTree {
 		return tree;
 	}
 	
-	
+	Set<DiscreteVariableValue> evidence() {
+		return this.evidence;
+	}
 
-	public void printBeliefs() {
+	void printBeliefs() {
 		for(CliqueNode node : this.nodes) {
 			System.out.println(node.toString());
 			System.out.println(node.belief());
@@ -79,7 +81,7 @@ class CliqueTree {
 	}
 	
 	
-	public boolean validateCalibration() {
+	boolean validateCalibration() {
 		for(CliqueNode node : this.nodes) {
 			for(CliqueNode neighbor : node.neighbors()) {
 				SepSet forNeighbor = node.sepSet(neighbor);
@@ -358,13 +360,18 @@ class CliqueTree {
 	/**
 	 * 
 	 * @param var (V)
-	 * @return P(V | E)
+	 * @return P(V) or P(V | E) if evidence was used
 	 */
-	TableProbabilityDistribution marginalProbabilityNormalized(DiscreteVariable var) {
+	TableProbabilityDistribution marginalProbability(DiscreteVariable var) {
 		return TableProbabilityDistribution.create(marginalProbabilityUnnormalized(var));
 	}
 	
 	
+	/**
+	 * 
+	 * @param var (V)
+	 * @return P(V) or P(V | E) if evidence was used unnormalized
+	 */
 	TableFactor marginalProbabilityUnnormalized(DiscreteVariable var) {
 		if(this.belifsPerVariable == null || this.belifsPerVariable.size() == 0) {
 			calibrateCliqueTree();
@@ -379,6 +386,45 @@ class CliqueTree {
 		HashSet<DiscreteVariable> variablesToMarginalizeOut = new HashSet<DiscreteVariable>();
 		variablesToMarginalizeOut.addAll(beleif.scope());
 		variablesToMarginalizeOut.remove(var);
+		
+		return (TableFactor) beleif.marginalize(variablesToMarginalizeOut);
+	}
+	
+	/**
+	 * 
+	 * @param vars -- (Variable set)
+	 * @return P(Vars)
+	 */
+	TableFactor jointProbabilityOfVariables(Set<DiscreteVariable> vars) {
+		
+		if(this.belifsPerVariable == null || this.belifsPerVariable.size() == 0) {
+			calibrateCliqueTree();
+		}
+		
+		for(DiscreteVariable var : vars) {
+			if(!this.belifsPerVariable.containsKey(var)) {
+				throw new IllegalArgumentException("Variable " + var + " not found!");
+			}
+		}
+		
+		CliqueNode nodeToUse = null;
+		for(CliqueNode node : nodes) {
+			if(node.scope.containsAll(vars)) {
+				nodeToUse = node;
+				break;
+			}
+		}
+		
+		if(nodeToUse == null) {
+			throw new IllegalStateException("No node has all variables in it");
+		}
+		
+		TableFactor beleif = nodeToUse.belief();
+		HashSet<DiscreteVariable> variablesToMarginalizeOut = new HashSet<DiscreteVariable>();
+		variablesToMarginalizeOut.addAll(beleif.scope());
+		variablesToMarginalizeOut.removeAll(vars);
+		
+		
 		
 		return (TableFactor) beleif.marginalize(variablesToMarginalizeOut);
 	}
