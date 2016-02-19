@@ -18,17 +18,17 @@ public class Row implements Cloneable {
 	private final Set<DiscreteVariableValue> variableValuesSet;
 	private final String key;
 	
-	private double value;
+	private double logValue;
 	
 	
-	private Row(double value, Collection<DiscreteVariableValue> variableValues) {
+	private Row(double logValue, Collection<DiscreteVariableValue> variableValues) {
 		this.variableValuesSet = new HashSet<DiscreteVariableValue>();
 		variableValuesSet.addAll(variableValues);
 		this.variableValuesMap = new HashMap<DiscreteVariable,DiscreteVariableValue>();
 		for(DiscreteVariableValue varVal : variableValues) {
 			this.variableValuesMap.put(varVal.variable(), varVal);
 		}
-		this.value = value;
+		this.logValue = logValue;
 		
 		//Create row key
 		StringBuilder sb = new StringBuilder();
@@ -50,15 +50,45 @@ public class Row implements Cloneable {
 	
 	/**
 	 * Create a row from variable values
-	 * @param variableValues these define the random variable values that correspond to the value for this row. e.g. (grade = g1, letter = l0) = 0.1
+	 * @param value -- a value to store in the row. Assumes it is not log scaled
+	 * @param variableValues -- these define the random variable values that correspond to the value for this row. e.g. (grade = g1, letter = l0) = 0.1
 	 * @return a row instance
 	 */
 	public static Row create(double value, Collection<DiscreteVariableValue> variableValues) {
+		return Row.create(false, value, variableValues);
+	}
+	
+	/**
+	 * 
+	 * @param isLogScaled is the value log scaled
+	 * @param value -- value in log scale
+	 * @param variableValues -- row identifier
+	 * @return
+	 */
+	public static Row create(boolean isLogScaled, double value, Collection<DiscreteVariableValue> variableValues) {
+		if(!isLogScaled) {
+			value = Math.log(value);
+		}
 		Row row = new Row(value, variableValues);
 		return row;
 	}
 	
-	public static Row create(double value, DiscreteVariableValue... varVals ) {
+	
+	public static Row create(double value, DiscreteVariableValue... varVals) {
+		return Row.create(false, value, varVals);
+	}
+	
+	/**
+	 * 
+	 * @param isLogScaled is the value log scaled
+	 * @param value -- value in log scale
+	 * @param variableValues -- row identifier
+	 * @return
+	 */
+	public static Row create(boolean isLogScaled, double value, DiscreteVariableValue... varVals ) {
+		if(!isLogScaled) {
+			value = Math.log(value);
+		}
 		List<DiscreteVariableValue> list = Arrays.asList(varVals);
 		Row row = new Row(value, list);
 		return row;
@@ -93,15 +123,36 @@ public class Row implements Cloneable {
 	}
 	
 	public double getValue() {
-		return value;
+		return Math.exp(logValue);
+	}
+	
+	public double getLogValue() {
+		return logValue;
 	}
 	
 	public void setValue(double value) {
-		this.value = value;
+		this.logValue = Math.log(value);
+	}
+	
+	public void setLogValue(double logValue) {
+		this.logValue = logValue;
 	}
 	
 	public void addToValue(double value) {
-		this.value = this.value + value;
+		if(this.logValue == Double.NEGATIVE_INFINITY) {
+			this.logValue = Math.log(value);
+		} else {
+			this.logValue = ProbabilityDistributionUtil.addLogValues(this.logValue, Math.log(value));
+		}
+	}
+	
+	
+	public void addToLogValue(double logValueToAdd) {
+		if(this.logValue == Double.NEGATIVE_INFINITY) {
+			this.logValue = logValueToAdd;
+		} else {
+			this.logValue = ProbabilityDistributionUtil.addLogValues(this.logValue, logValueToAdd);
+		}
 	}
 	
 	@Override
@@ -122,7 +173,7 @@ public class Row implements Cloneable {
 			varVals.add(varVal);
 		}
 		if(copyValue) {
-			return Row.create(this.value, varVals);
+			return Row.create(true, this.logValue, varVals);
 		} else {
 			return Row.create(0.0, varVals);
 		}
@@ -144,7 +195,7 @@ public class Row implements Cloneable {
 			//}
 		}
 		
-		sb.append(this.value);
+		sb.append(this.getValue());
 		
 		
 		return sb.toString();
@@ -153,7 +204,7 @@ public class Row implements Cloneable {
 	@Override
 	public Object clone() {
 		//Allows for a new value to be set for the row without modifying the old row
-		Row newRow = Row.create(getValue(), this.variableValuesSet);
+		Row newRow = Row.create(true, getLogValue(), this.variableValuesSet);
 		return newRow;
 	}
 	
@@ -209,7 +260,7 @@ public class Row implements Cloneable {
 	 */
 	public Row product(Row other, Set<DiscreteVariable> newScope) {
 		
-		double result = this.getValue() * other.getValue();
+		double logResult = this.getLogValue() + other.getLogValue();
 		
 		//create new merged variable values
 		Set<DiscreteVariableValue> varVals = new HashSet<DiscreteVariableValue>();
@@ -231,6 +282,6 @@ public class Row implements Cloneable {
 			}
 		}
 		
-		return Row.create(result, varVals);
+		return Row.create(true, logResult, varVals);
 	}
 }

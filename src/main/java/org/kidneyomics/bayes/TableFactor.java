@@ -158,7 +158,7 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 			Row possibleNewRow = row.createRowFromVariableSubset(varSet, true);
 			if(rowMap.containsKey(possibleNewRow.key())) {
 				Row newRow = rowMap.get(possibleNewRow.key());
-				newRow.addToValue(possibleNewRow.getValue());
+				newRow.addToLogValue(possibleNewRow.getLogValue());
 			} else {
 				rowMap.put(possibleNewRow.key(), possibleNewRow);
 				rowOrder.add(possibleNewRow);
