@@ -68,6 +68,14 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 		return this;
 	}
 	
+	public double getFirstRowValue() {
+		if(rows.size() > 0) {
+			return this.rows.get(0).getValue();
+		} else {
+			return - 1;
+		}
+	}
+	
 	public List<Row> rows() {
 		return this.rows;
 	}
@@ -125,7 +133,12 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 		
 	}
 	
+	/**
+	 * @param variables to marginalize out
+	 */
+	
 	public Factor<DiscreteVariable, DiscreteVariableValue> marinalize(DiscreteVariable... variables) {
+		
 		HashSet<DiscreteVariable> variablesSet = new HashSet<DiscreteVariable>();
 		for(DiscreteVariable variable : variables) {
 			variablesSet.add(variable);
@@ -133,8 +146,11 @@ public class TableFactor implements Factor<DiscreteVariable,DiscreteVariableValu
 		return marginalize(variablesSet);
 	}
 	
+	/**
+	 * @param variables to marginalize out
+	 */
 	public Factor<DiscreteVariable, DiscreteVariableValue> marginalize(Set<DiscreteVariable> variables) {
-		//marginalize a single variable
+		
 		HashSet<DiscreteVariable> varSet = new HashSet<DiscreteVariable>();
 		varSet.addAll(this.scope.values());
 		

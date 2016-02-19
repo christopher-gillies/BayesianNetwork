@@ -1,6 +1,7 @@
 package org.kidneyomics.bayes;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,15 +36,22 @@ class CliqueTree {
 			evi.add(valVar);
 		}
 		
-		return create(network, evi);
+		return createFromEvidence(network, evi);
 	}
 	
-	static CliqueTree create(TableBayesianNetwork network, Set<DiscreteVariableValue> evidence) {
+	static CliqueTree createFromEvidence(TableBayesianNetwork network, Collection<DiscreteVariableValue> evidence) {
+
+		
+		List<DiscreteVariable> variableEliminationOrder = TableBayesianNetworkUtil.greedyVariableEliminationOrder(network, new MinNeighborsEvaluationMetric<DiscreteVariable>());
+
+		return createFromEvidenceAndOrder(network, evidence, variableEliminationOrder);
+	}
+	
+	
+	static CliqueTree createFromEvidenceAndOrder(TableBayesianNetwork network, Collection<DiscreteVariableValue> evidence, List<DiscreteVariable> variableEliminationOrder) {
 		CliqueTree tree = new CliqueTree(network);
 		tree.evidence.addAll(evidence);
 		
-		List<DiscreteVariable> variableEliminationOrder = TableBayesianNetworkUtil.greedyVariableEliminationOrder(network, new MinNeighborsEvaluationMetric<DiscreteVariable>());
-		
 		//add nodes to tree
 		TableBayesianNetworkUtil.sumProductVariableElimination(network.factors(), variableEliminationOrder, tree);
 		
@@ -52,7 +60,7 @@ class CliqueTree {
 	}
 	
 	
-	static CliqueTree createFromNetworkAndOrder(TableBayesianNetwork network, List<DiscreteVariable> variableEliminationOrder) {
+	static CliqueTree createFromNetworkAndOrder(TableBayesianNetwork network, List<DiscreteVariable> variableEliminationOrder ) {
 		CliqueTree tree = new CliqueTree(network);
 			
 		//add nodes to tree
@@ -61,7 +69,16 @@ class CliqueTree {
 		return tree;
 	}
 	
-	//TODO: validate calibration
+	
+
+	public void printBeliefs() {
+		for(CliqueNode node : this.nodes) {
+			System.out.println(node.toString());
+			System.out.println(node.belief());
+		}
+	}
+	
+	
 	public boolean validateCalibration() {
 		for(CliqueNode node : this.nodes) {
 			for(CliqueNode neighbor : node.neighbors()) {
@@ -333,7 +350,17 @@ class CliqueTree {
 	}
 	
 	
-	TableProbabilityDistribution marginalProbability(DiscreteVariable var) {
+	/**
+	 * 
+	 * @param var (V)
+	 * @return P(V | E)
+	 */
+	TableProbabilityDistribution marginalProbabilityNormalized(DiscreteVariable var) {
+		return TableProbabilityDistribution.create(marginalProbabilityUnnormalized(var));
+	}
+	
+	
+	TableFactor marginalProbabilityUnnormalized(DiscreteVariable var) {
 		if(this.belifsPerVariable == null || this.belifsPerVariable.size() == 0) {
 			calibrateCliqueTree();
 		}
@@ -348,7 +375,37 @@ class CliqueTree {
 		variablesToMarginalizeOut.addAll(beleif.scope());
 		variablesToMarginalizeOut.remove(var);
 		
-		return TableProbabilityDistribution.create((TableFactor) beleif.marginalize(variablesToMarginalizeOut));
+		return (TableFactor) beleif.marginalize(variablesToMarginalizeOut);
+	}
+	
+	/**
+	 * 
+	 * @return probability of the evidence used to construct this tree
+	 */
+	double probabilityOfEvidenceMarginalizedOverMissingValues(boolean log) {
+		
+		//choose smallest clique distribution
+		TableFactor beliefToUse = null;
+		int size = Integer.MAX_VALUE;
+		for(CliqueNode node : this.nodes) {
+			if(node.belief().rows().size() < size) {
+				size = node.belief().rows().size();
+				beliefToUse = node.belief();
+			}
+		}
+		
+		if(beliefToUse == null) {
+			throw new IllegalStateException("Error cannot be null");
+		}
+		
+		//return the sum of the entries
+		double logSum = ProbabilityDistributionUtil.sumLogScale(beliefToUse.rows());
+		
+		if(log) {
+			return logSum;
+		} else {
+			return Math.exp(logSum);
+		}
 	}
 	
 	class SepSet {

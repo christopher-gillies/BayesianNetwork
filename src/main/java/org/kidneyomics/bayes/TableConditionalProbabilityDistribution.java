@@ -54,6 +54,7 @@ public class TableConditionalProbabilityDistribution implements ProbabilityDistr
 			// get subset of variables for this node
 			List<DiscreteVariableValue> varValsForInstance = instance.subset(table.scope());
 			
+			boolean used = false;
 			//go through each row
 			for(Row row : table.rows()) {
 				//if the row matches the input then add one to the count
@@ -61,7 +62,15 @@ public class TableConditionalProbabilityDistribution implements ProbabilityDistr
 					double currentVal = sufficientStatistics.get(row);
 					
 					sufficientStatistics.put(row, currentVal + 1.0);
+					if(used == true) {
+						throw new IllegalStateException("Error this instance has already been counted for this CPD");
+					}
+					used = true;
 				}
+			}
+			
+			if(used == false) {
+				throw new IllegalStateException("Error this was not counted for this CPD");
 			}
 		}
 		

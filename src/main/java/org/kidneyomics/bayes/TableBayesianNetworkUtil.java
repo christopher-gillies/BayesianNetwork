@@ -402,4 +402,10 @@ public class TableBayesianNetworkUtil {
 			node.cpd().maximumLikelihoodEstimation(stats);
 		}
 	}
+	
+	public static double likelihood(TableBayesianNetwork network, List<DiscreteVariable> eliminationOrder, DiscreteInstance instance, boolean logScale) {
+		
+		
+		return 0;
+	}
 }

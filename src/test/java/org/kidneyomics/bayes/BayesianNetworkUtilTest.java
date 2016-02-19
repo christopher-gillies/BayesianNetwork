@@ -140,7 +140,7 @@ public class BayesianNetworkUtilTest {
 		
 		System.err.println(dist);
 		
-		TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+		TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(var);
 		System.err.println(longCalculationTable);
 		
 		double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("s0"))).getValue();
@@ -166,7 +166,7 @@ public class BayesianNetworkUtilTest {
 		
 		System.err.println(dist);
 		
-		TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+		TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(var);
 		System.err.println(longCalculationTable);
 		
 		double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("l0"))).getValue();
@@ -192,7 +192,7 @@ public class BayesianNetworkUtilTest {
 		
 		System.err.println(dist);
 		
-		TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+		TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(var);
 		System.err.println(longCalculationTable);
 		
 		double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("g1"))).getValue();
@@ -233,7 +233,7 @@ public class BayesianNetworkUtilTest {
 		
 		System.err.println(dist);
 		
-		TableProbabilityDistribution longCalculationTable = network.computeProbability(diff,DiscreteVariableValue.create(grade, grade.getValueByName("g1")));
+		TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(diff,DiscreteVariableValue.create(grade, grade.getValueByName("g1")));
 		System.err.println(longCalculationTable);
 		
 		double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).getValue();
@@ -257,7 +257,7 @@ public class BayesianNetworkUtilTest {
 		
 		System.err.println(dist);
 		
-		TableProbabilityDistribution longCalculationTable = network.computeProbability(diff,DiscreteVariableValue.create(grade, grade.getValueByName("g1")),
+		TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(diff,DiscreteVariableValue.create(grade, grade.getValueByName("g1")),
 				DiscreteVariableValue.create(intel, intel.getValueByName("i0")));
 		System.err.println(longCalculationTable);
 		
@@ -283,7 +283,7 @@ public class BayesianNetworkUtilTest {
 		
 		System.err.println(dist);
 		
-		TableProbabilityDistribution longCalculationTable = network.computeProbability(letter,DiscreteVariableValue.create(grade, grade.getValueByName("g1")),
+		TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(letter,DiscreteVariableValue.create(grade, grade.getValueByName("g1")),
 				DiscreteVariableValue.create(intel, intel.getValueByName("i0")));
 		System.err.println(longCalculationTable);
 		
@@ -309,7 +309,7 @@ public class BayesianNetworkUtilTest {
 		
 		System.err.println(dist);
 		
-		TableProbabilityDistribution longCalculationTable = network.computeProbability(letter,
+		TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(letter,
 				DiscreteVariableValue.create(intel, intel.getValueByName("i0")));
 		System.err.println(longCalculationTable);
 		
@@ -334,7 +334,7 @@ public class BayesianNetworkUtilTest {
 		
 		System.err.println(dist);
 		
-		TableProbabilityDistribution longCalculationTable = network.computeProbability(letter,DiscreteVariableValue.create(diff, diff.getValueByName("d0")),
+		TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(letter,DiscreteVariableValue.create(diff, diff.getValueByName("d0")),
 				DiscreteVariableValue.create(intel, intel.getValueByName("i0")));
 		System.err.println(longCalculationTable);
 		
@@ -357,7 +357,7 @@ public class BayesianNetworkUtilTest {
 		
 		System.err.println(dist);
 		
-		TableProbabilityDistribution longCalculationTable = network.computeProbability(letter,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+		TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(letter,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
 		System.err.println(longCalculationTable);
 		
 		double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l0"))).getValue();

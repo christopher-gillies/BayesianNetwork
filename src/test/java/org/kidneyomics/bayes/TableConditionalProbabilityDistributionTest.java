@@ -99,7 +99,7 @@ public class TableConditionalProbabilityDistributionTest {
 	
 	@Test
 	public void testCalculateSufficientStatistics() {
-		System.err.println("Generate Sample");
+		System.err.println("testCalculateSufficientStatistics");
 		
 		
 		StudentNetwork network = StudentNetwork.create();
@@ -113,6 +113,13 @@ public class TableConditionalProbabilityDistributionTest {
 		TableNode diffNode = network.getNode(diff);
 		
 		Map<Row,Double> stats = diffNode.cpd().computeSufficientStatisticsCompleteData(sample);
+		
+		double sum = 0;
+		for(Row row : stats.keySet()) {
+			sum += stats.get(row);
+		}
+		
+		assertEquals(100000,sum,0.0001);
 		
 		diffNode.cpd().maximumLikelihoodEstimation(stats);
 		

@@ -1,5 +1,6 @@
 package org.kidneyomics.bayes.example;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -261,7 +262,7 @@ public class StudentNetwork implements TableBayesianNetwork {
 		return TableBayesianNetworkUtil.topologicalSort(this);
 	}
 	
-	public TableProbabilityDistribution computeProbability(DiscreteVariable target, DiscreteVariableValue... evidences) {
+	public TableProbabilityDistribution computeNormalizedProbability(DiscreteVariable target, DiscreteVariableValue... evidences) {
 		
 		if(evidences == null) {
 			evidences = new DiscreteVariableValue[0];
@@ -285,6 +286,43 @@ public class StudentNetwork implements TableBayesianNetwork {
 			return TableProbabilityDistribution.create( (TableFactor)  joint.marginalize(marginalSet));
 		} else {
 			return TableProbabilityDistribution.create( (TableFactor)  joint.reduce(evidences).marginalize(marginalSet));
+		}
+			
+	}
+	
+	public Set<DiscreteVariable> variables() {
+		return this.nodeMap.keySet();
+	}
+	
+	public TableFactor computeProbability(DiscreteVariable target, DiscreteVariableValue... evidences) {
+		HashSet<DiscreteVariableValue> evi = new HashSet<DiscreteVariableValue>();
+		for(DiscreteVariableValue evidence : evidences) {
+			evi.add(evidence);
+		}
+		
+		return computeProbability(target, evidences);
+	}
+	
+	public TableFactor computeProbability(DiscreteVariable target, Set<DiscreteVariableValue> evidences) {
+		
+		TableFactor joint = computeJoint();
+		
+		HashSet<DiscreteVariable> marginalSet = new HashSet<DiscreteVariable>();
+		
+		marginalSet.addAll(joint.scope());
+		
+		// remove target
+		marginalSet.remove(target);
+		
+		//remove marginal variables
+		for(DiscreteVariableValue varVal : evidences) {
+			marginalSet.remove(varVal.variable());
+		}
+		
+		if(evidences.size() == 0) {
+			return (TableFactor)  joint.marginalize(marginalSet);
+		} else {
+			return (TableFactor)  joint.reduce(evidences).marginalize(marginalSet);
 		}
 			
 	}

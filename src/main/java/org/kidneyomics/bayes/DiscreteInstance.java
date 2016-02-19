@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,6 +49,27 @@ public class DiscreteInstance {
 	
 	public DiscreteVariableValue get(DiscreteVariable key) {
 		return this.values.get(key);
+	}
+	
+	public Collection<DiscreteVariableValue> values() {
+		return this.values.values();
+	}
+	
+	/**
+	 * 
+	 * @return all non missing discrete variable entries
+	 */
+	public HashSet<DiscreteVariableValue> evidence() {
+		HashSet<DiscreteVariableValue> res = new HashSet<DiscreteVariableValue>();
+		
+		for(Map.Entry<DiscreteVariable,DiscreteVariableValue> entry : this.values.entrySet()) {
+			DiscreteVariableValue varVal = entry.getValue();
+			if(!varVal.isMissing()) {
+				res.add(varVal);
+			}
+		}
+		
+		return res;
 	}
 	
 	/**

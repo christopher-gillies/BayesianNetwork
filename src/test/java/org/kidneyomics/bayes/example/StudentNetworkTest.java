@@ -45,7 +45,7 @@ public class StudentNetworkTest {
 		DiscreteVariable letter = network.getVariableByName("Letter");
 		
 		//difficulty
-		TableProbabilityDistribution res = network.computeProbability(diff, new DiscreteVariableValue[0]);
+		TableProbabilityDistribution res = network.computeNormalizedProbability(diff, new DiscreteVariableValue[0]);
 		
 		System.err.println(res);
 		
@@ -54,7 +54,7 @@ public class StudentNetworkTest {
 		
 		
 		//intelligence
-		TableProbabilityDistribution res2 = network.computeProbability(intel, new DiscreteVariableValue[0]);
+		TableProbabilityDistribution res2 = network.computeNormalizedProbability(intel, new DiscreteVariableValue[0]);
 		
 		System.err.println(res2);
 		
@@ -62,7 +62,7 @@ public class StudentNetworkTest {
 		assertEquals(0.3,res2.getFactor().getRowsByValues(false, DiscreteVariableValue.create(intel, intel.getValueByName("i1"))).get(0).getValue(),0.0001);
 		
 		//letter
-		TableProbabilityDistribution res3 = network.computeProbability(letter, new DiscreteVariableValue[0]);
+		TableProbabilityDistribution res3 = network.computeNormalizedProbability(letter, new DiscreteVariableValue[0]);
 		
 		System.err.println(res3);
 		
@@ -71,7 +71,7 @@ public class StudentNetworkTest {
 		
 		
 		//letter given not smart
-		TableProbabilityDistribution res4 = network.computeProbability(letter, DiscreteVariableValue.create(intel, intel.getValueByName("i0")));
+		TableProbabilityDistribution res4 = network.computeNormalizedProbability(letter, DiscreteVariableValue.create(intel, intel.getValueByName("i0")));
 		
 		System.err.println(res4);
 		
@@ -80,7 +80,7 @@ public class StudentNetworkTest {
 		
 		
 		//letter given not smart and easy
-		TableProbabilityDistribution res5 = network.computeProbability(letter, DiscreteVariableValue.create(intel, intel.getValueByName("i0")), 
+		TableProbabilityDistribution res5 = network.computeNormalizedProbability(letter, DiscreteVariableValue.create(intel, intel.getValueByName("i0")), 
 				DiscreteVariableValue.create(diff, diff.getValueByName("d0")));
 		
 		System.err.println(res5);
@@ -91,7 +91,7 @@ public class StudentNetworkTest {
 		
 		
 		//intelligence given a low grade
-		TableProbabilityDistribution res6 = network.computeProbability(intel, DiscreteVariableValue.create(grade, grade.getValueByName("g3")));
+		TableProbabilityDistribution res6 = network.computeNormalizedProbability(intel, DiscreteVariableValue.create(grade, grade.getValueByName("g3")));
 		
 		System.err.println(res6);
 		
@@ -100,7 +100,7 @@ public class StudentNetworkTest {
 		
 		
 		//difficulty given a low grade
-		TableProbabilityDistribution res7 = network.computeProbability(diff, DiscreteVariableValue.create(grade, grade.getValueByName("g3")));
+		TableProbabilityDistribution res7 = network.computeNormalizedProbability(diff, DiscreteVariableValue.create(grade, grade.getValueByName("g3")));
 		
 		System.err.println(res7);
 		

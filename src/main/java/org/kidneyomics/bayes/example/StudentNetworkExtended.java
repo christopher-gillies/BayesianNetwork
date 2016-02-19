@@ -32,6 +32,12 @@ public class StudentNetworkExtended implements TableBayesianNetwork {
 	private HashMap<String,DiscreteVariable> variableMap;
 	private HashMap<DiscreteVariable,TableNode> nodeMap;
 	
+	
+	public Set<DiscreteVariable> variables() {
+		return this.nodeMap.keySet();
+	}
+	
+	
 	private StudentNetworkExtended() {
 		this.variableMap = new HashMap<String, DiscreteVariable>();
 		this.nodeMap = new HashMap<DiscreteVariable,TableNode>();

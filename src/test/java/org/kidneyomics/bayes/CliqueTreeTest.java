@@ -2,6 +2,7 @@ package org.kidneyomics.bayes;
 
 import static org.junit.Assert.*;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -298,12 +299,12 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = diff;
-			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
 			
 			System.err.println("marginal for" + var);
 			System.err.println(marge.toString());
 			
-			TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+			TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(var);
 			
 			double exp1 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("d0"))).getValue();
 			double exp2 = longCalculationTable.getFactor().getRowByValues(false, DiscreteVariableValue.create(var, var.getValueByName("d1"))).getValue();
@@ -315,12 +316,12 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = sat;
-			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
 			
-			TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+			TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(var);
 			System.err.println("long for " + var);
 			System.err.println(longCalculationTable.toString());
 			
@@ -333,12 +334,12 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = intel;
-			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
 			
-			TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+			TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(var);
 			System.err.println("long for " + var);
 			System.err.println(longCalculationTable.toString());
 			
@@ -351,12 +352,12 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = letter;
-			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
 			
-			TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+			TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(var);
 			System.err.println("long for " + var);
 			System.err.println(longCalculationTable.toString());
 			
@@ -369,12 +370,12 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = grade;
-			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
 			
-			TableProbabilityDistribution longCalculationTable = network.computeProbability(var);
+			TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(var);
 			System.err.println("long for " + var);
 			System.err.println(longCalculationTable.toString());
 			
@@ -408,12 +409,12 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = diff;
-			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
 			
-			TableProbabilityDistribution longCalculationTable = network.computeProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+			TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
 			
 			System.err.println("long for " + var);
 			System.err.println(longCalculationTable.toString());
@@ -427,12 +428,12 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = intel;
-			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
 			
-			TableProbabilityDistribution longCalculationTable = network.computeProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+			TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
 			
 			System.err.println("long for " + var);
 			System.err.println(longCalculationTable.toString());
@@ -446,12 +447,12 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = letter;
-			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
 			
-			TableProbabilityDistribution longCalculationTable = network.computeProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+			TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
 			
 			System.err.println("long for " + var);
 			System.err.println(longCalculationTable.toString());
@@ -464,12 +465,12 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = grade;
-			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
 			
-			TableProbabilityDistribution longCalculationTable = network.computeProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+			TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
 			
 			System.err.println("long for " + var);
 			System.err.println(longCalculationTable.toString());
@@ -485,12 +486,12 @@ public class CliqueTreeTest {
 		
 		{
 			DiscreteVariable var = sat;
-			TableProbabilityDistribution marge = tree.marginalProbability(var);
+			TableProbabilityDistribution marge = tree.marginalProbabilityNormalized(var);
 			
 			System.err.println("marginal for " + var);
 			System.err.println(marge.toString());
 			
-			TableProbabilityDistribution longCalculationTable = network.computeProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
+			TableProbabilityDistribution longCalculationTable = network.computeNormalizedProbability(var,DiscreteVariableValue.create(letter, letter.getValueByName("l0")));
 			
 			System.err.println("long for " + var);
 			System.err.println(longCalculationTable.toString());
@@ -523,5 +524,88 @@ public class CliqueTreeTest {
 		tree.calibrateCliqueTree();
 		assertTrue(tree.validateCalibration());
 		
+	}
+	
+	
+	@Test
+	public void testCalibrateCliqueTreeEvidenceFull() {
+		System.err.println("testCalibrateCliqueTree with Evidence Full");
+		StudentNetwork network = StudentNetwork.create();
+		DiscreteInstance instance = TableBayesianNetworkUtil.forwardSample(network);
+		
+		
+		CliqueTree tree = CliqueTree.createFromEvidence(network, instance.evidence());
+		tree.calibrateCliqueTree();
+		tree.printBeliefs();
+		
+		double probability = network.computeJoint().getRowsByValues(false, instance.evidence()).get(0).getValue();
+		
+		System.err.println(probability);
+		
+		double probabilitlyCalc = tree.probabilityOfEvidenceMarginalizedOverMissingValues(false);
+		
+		assertEquals(probability,probabilitlyCalc,0.001);
+	}
+	
+	@Test
+	public void testCalibrateCliqueTreeEvidenceFull2() {
+		System.err.println("testCalibrateCliqueTreeEvidenceFull2");
+		StudentNetwork network = StudentNetwork.create();
+		DiscreteInstance instance = TableBayesianNetworkUtil.forwardSample(network);
+		
+		DiscreteVariable grade = network.getVariableByName("Grade");
+		
+		//missing value
+		instance.put(grade, DiscreteVariableValue.create(grade, DiscreteValue.createMissing()));
+		
+		
+		CliqueTree tree = CliqueTree.createFromEvidence(network, instance.evidence());
+		
+		tree.calibrateCliqueTree();
+		tree.printBeliefs();
+		
+		List<Row> rows =  network.computeJoint().getRowsByValues(false, instance.evidence());
+		double probability = 0;
+		for(Row row : rows) {
+			probability += row.getValue();
+		}
+		
+		System.err.println(probability);
+		
+		double probabilitlyCalc = tree.probabilityOfEvidenceMarginalizedOverMissingValues(false);
+		
+		assertEquals(probability,probabilitlyCalc,0.001);
+	}
+	
+	@Test
+	public void testCalibrateCliqueTreeEvidenceFull3() {
+		System.err.println("testCalibrateCliqueTreeEvidenceFull3");
+		StudentNetwork network = StudentNetwork.create();
+		DiscreteInstance instance = TableBayesianNetworkUtil.forwardSample(network);
+		
+		DiscreteVariable grade = network.getVariableByName("Grade");
+		DiscreteVariable intel = network.getVariableByName("Intelligence");
+		
+		//missing value
+		instance.put(grade, DiscreteVariableValue.create(grade, DiscreteValue.createMissing()));
+		instance.put(intel, DiscreteVariableValue.create(intel, DiscreteValue.createMissing()));
+		
+		
+		CliqueTree tree = CliqueTree.createFromEvidence(network, instance.evidence());
+		
+		tree.calibrateCliqueTree();
+		tree.printBeliefs();
+		
+		List<Row> rows =  network.computeJoint().getRowsByValues(false, instance.evidence());
+		double probability = 0;
+		for(Row row : rows) {
+			probability += row.getValue();
+		}
+		
+		System.err.println(probability);
+		
+		double probabilitlyCalc = tree.probabilityOfEvidenceMarginalizedOverMissingValues(false);
+		
+		assertEquals(probability,probabilitlyCalc,0.001);
 	}
 }
