@@ -9,6 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.kidneyomics.bayes.CliqueTree.CliqueNode;
+
 public class TableConditionalProbabilityDistribution implements ProbabilityDistribution {
 
 	private final TableFactor table;
@@ -92,21 +94,43 @@ public class TableConditionalProbabilityDistribution implements ProbabilityDistr
 		for(CliqueTree tree : trees) {
 			//go through each row
 			double totalContribution = 0;
-			for(Row row : table.rows()) {
+			//get clique tree node for this table CPD
+			CliqueNode node = tree.getSmallestNodeByScope(this.table.scope());
+			if(node == null) {
+				throw new IllegalStateException("No clique node found with this table's scope");
+			}
+			//belief table scope should be at least as big as this table's scope? right?
+			TableFactor belief = node.belief();
+			if(belief == null || belief.rows().size() == 0) {
+				throw new IllegalStateException("No probabilty for this sample");
+			}
+			//normalize the distribution results
+			TableProbabilityDistribution beliefDist = TableProbabilityDistribution.create(belief);
+			for(Row beliefRow : beliefDist.getFactor().rows()) {
+				beliefRow = beliefRow.createRowFromVariableSubset(this.table.scope(), true);
+				double probability = beliefRow.getValue();
+				Row tableRow = this.table.getRowByValues(false, beliefRow.variableValueSet());
+				double currentVal = sufficientStatistics.get(tableRow);
+				sufficientStatistics.put(tableRow, currentVal + probability);
+				//store contribution
+				totalContribution += probability;
+			}
+			//add contribution to rows for every value of belief factor
+			//for(Row row : table.rows()) {
 
 				
 				//if the row matches the input then add one to the count
 				//TODO: only select rows that match
 				//if(row.hasAllDiscreteVariableValues(tree.evidence())) {
-					double currentVal = sufficientStatistics.get(row);
+				///	double currentVal = sufficientStatistics.get(row);
 					//calculate the joint probability of the variable and its parents
 					//since the table scope is used to find the clique node all the rows discrete values shoudl be there
-					double probability = tree.jointProbabilityOfVariables(this.table.scope()).getRowByValues(false, row.variableValueSet()).getValue();
-					totalContribution += probability;
-					sufficientStatistics.put(row, currentVal + probability);
+					//double probability = tree.jointProbabilityOfVariables(this.table.scope()).getRowByValues(false, row.variableValueSet()).getValue();
+					//totalContribution += probability;
+					//sufficientStatistics.put(row, currentVal + probability);
 					
 				//}
-			}
+			//}
 			
 			if(Math.abs(totalContribution - 1) > 0.001) {
 				throw new IllegalStateException("Error total contribution is not 1!");

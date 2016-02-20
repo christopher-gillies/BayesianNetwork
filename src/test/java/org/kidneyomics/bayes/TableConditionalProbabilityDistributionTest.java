@@ -132,17 +132,17 @@ public class TableConditionalProbabilityDistributionTest {
 	
 	
 	@Test
-	public void testCalculateSufficientStatisticsMissing() {
-		System.err.println("testCalculateSufficientStatisticsMissing");
+	public void testCalculateSufficientStatisticsMissing1() {
+		System.err.println("testCalculateSufficientStatisticsMissing1");
 		
 		
 		StudentNetwork network = StudentNetwork.create();
 		
 		DiscreteVariable diff = network.getVariableByName("Difficulty");
 		
-		List<DiscreteInstance> sample = TableBayesianNetworkUtil.forwardSampling(network, 1000);
+		List<DiscreteInstance> sample = TableBayesianNetworkUtil.forwardSampling(network, 2000);
 		
-		assertEquals(1000,sample.size());
+		assertEquals(2000,sample.size());
 		
 		TableNode diffNode = network.getNode(diff);
 		
@@ -161,14 +161,85 @@ public class TableConditionalProbabilityDistributionTest {
 			sum += stats.get(row);
 		}
 		
-		assertEquals(1000,sum,0.0001);
+		assertEquals(2000,sum,0.0001);
 		
 		diffNode.cpd().maximumLikelihoodEstimation(stats);
 		
 		System.err.println(diffNode.cpd());
 		
-		assertEquals(0.6,diffNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).getValue(),0.01);
-		assertEquals(0.4,diffNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d1"))).getValue(),0.01);
+		assertEquals(0.6,diffNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).getValue(),0.03);
+		assertEquals(0.4,diffNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d1"))).getValue(),0.03);
 	}
 
+	@Test
+	public void testCalculateSufficientStatisticsMissing2() {
+		System.err.println("testCalculateSufficientStatisticsMissing2");
+		
+		
+		StudentNetwork network = StudentNetwork.create();
+		
+		DiscreteVariable diff = network.getVariableByName("Difficulty");
+		DiscreteVariable sat = network.getVariableByName("SAT");
+		DiscreteVariable intel = network.getVariableByName("Intelligence");
+		
+		List<DiscreteInstance> sample = TableBayesianNetworkUtil.forwardSampling(network, 2000);
+		
+		assertEquals(2000,sample.size());
+		
+		TableNode diffNode = network.getNode(diff);
+		TableNode satNode = network.getNode(sat);
+		
+		List<CliqueTree> trees = new LinkedList<CliqueTree>();
+		
+		for(DiscreteInstance instance : sample) {
+			instance.put(diff, DiscreteVariableValue.create(diff, DiscreteValue.createMissing()));
+			instance.put(sat, DiscreteVariableValue.create(sat, DiscreteValue.createMissing()));
+			System.err.println(instance.toString(network.variables()));
+			CliqueTree tree = CliqueTree.createFromEvidence(network, instance.evidence());
+			tree.calibrateCliqueTree();
+			trees.add(tree);
+		}
+		
+		{
+			Map<Row,Double> stats = diffNode.cpd().computeSufficientStatisticsMissingData(trees);
+			
+			double sum = 0;
+			for(Row row : stats.keySet()) {
+				sum += stats.get(row);
+			}
+			
+			assertEquals(2000,sum,0.0001);
+			
+			diffNode.cpd().maximumLikelihoodEstimation(stats);
+			
+			System.err.println(diffNode.cpd());
+			
+			assertEquals(0.6,diffNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).getValue(),0.03);
+			assertEquals(0.4,diffNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d1"))).getValue(),0.03);
+		}
+		
+		{
+			Map<Row,Double> stats = satNode.cpd().computeSufficientStatisticsMissingData(trees);
+			
+			double sum = 0;
+			for(Row row : stats.keySet()) {
+				sum += stats.get(row);
+			}
+			
+			assertEquals(2000,sum,0.0001);
+			
+			satNode.cpd().maximumLikelihoodEstimation(stats);
+			
+			System.err.println(satNode.cpd());
+			
+			assertEquals(0.95,satNode.cpd().getFactor().getRowByValues(false, 
+					DiscreteVariableValue.create(sat, sat.getValueByName("s0")),
+						DiscreteVariableValue.create(intel, intel.getValueByName("i0"))).getValue(),0.03);
+			
+			assertEquals(0.2,satNode.cpd().getFactor().getRowByValues(false, 
+					DiscreteVariableValue.create(sat, sat.getValueByName("s0")),
+						DiscreteVariableValue.create(intel, intel.getValueByName("i1"))).getValue(),0.03);
+				
+		}
+	}
 }

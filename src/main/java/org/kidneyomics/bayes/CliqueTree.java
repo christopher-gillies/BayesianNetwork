@@ -279,6 +279,30 @@ class CliqueTree {
 		return result;
 	}
 	
+	/**
+	 * 
+	 * @param searchScope -- the required matching variables
+	 * @return the node with the smallest number of rows or null if none exists
+	 */
+	CliqueNode getSmallestNodeByScope(Set<DiscreteVariable> searchScope) {
+		List<CliqueNode> nodes = getNodesByScope(searchScope);
+		if(nodes.size() == 0) {
+			return null;
+		} else {
+			CliqueNode result = nodes.get(0);
+			int size = result.belief().rows().size();
+			for(CliqueNode node : nodes) {
+				int numRows = node.belief().rows().size();
+				if(numRows < size) {
+					size = numRows;
+					result = node;
+				}
+			}
+			
+			return result;
+		}
+	}
+	
 	
 	/**
 	 * Called from Variable Elimination algorithm

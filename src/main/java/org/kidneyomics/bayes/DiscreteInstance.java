@@ -85,7 +85,7 @@ public class DiscreteInstance {
 		return subset;
 	}
 	
-	public String titleRow(List<DiscreteVariable> order) {
+	public String titleRow(Collection<DiscreteVariable> order) {
 		StringBuilder sb = new StringBuilder();
 		Iterator<DiscreteVariable> iter = order.iterator();
 		
@@ -104,7 +104,7 @@ public class DiscreteInstance {
 	}
 	
 	
-	public String toString(List<DiscreteVariable> order) {
+	public String toString(Collection<DiscreteVariable> order) {
 		StringBuilder sb = new StringBuilder();
 		Iterator<DiscreteVariable> iter = order.iterator();
 		
