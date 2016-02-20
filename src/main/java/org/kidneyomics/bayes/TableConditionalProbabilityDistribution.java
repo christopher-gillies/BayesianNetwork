@@ -106,6 +106,9 @@ public class TableConditionalProbabilityDistribution implements ProbabilityDistr
 			}
 			//normalize the distribution results
 			TableProbabilityDistribution beliefDist = TableProbabilityDistribution.create(belief);
+			
+			//since each sample contributes a total of one to the cpd
+			//we just sum across the entries of the normalized belief factor which also sums to one
 			for(Row beliefRow : beliefDist.getFactor().rows()) {
 				beliefRow = beliefRow.createRowFromVariableSubset(this.table.scope(), true);
 				double probability = beliefRow.getValue();
@@ -115,22 +118,6 @@ public class TableConditionalProbabilityDistribution implements ProbabilityDistr
 				//store contribution
 				totalContribution += probability;
 			}
-			//add contribution to rows for every value of belief factor
-			//for(Row row : table.rows()) {
-
-				
-				//if the row matches the input then add one to the count
-				//TODO: only select rows that match
-				//if(row.hasAllDiscreteVariableValues(tree.evidence())) {
-				///	double currentVal = sufficientStatistics.get(row);
-					//calculate the joint probability of the variable and its parents
-					//since the table scope is used to find the clique node all the rows discrete values shoudl be there
-					//double probability = tree.jointProbabilityOfVariables(this.table.scope()).getRowByValues(false, row.variableValueSet()).getValue();
-					//totalContribution += probability;
-					//sufficientStatistics.put(row, currentVal + probability);
-					
-				//}
-			//}
 			
 			if(Math.abs(totalContribution - 1) > 0.001) {
 				throw new IllegalStateException("Error total contribution is not 1!");
