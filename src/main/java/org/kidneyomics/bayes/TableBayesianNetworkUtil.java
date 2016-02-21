@@ -21,7 +21,7 @@ import org.kidneyomics.graph.TopologicalSorter;
 
 public class TableBayesianNetworkUtil {
 	
-	private final static RandomNumberService randService = new DefaultRandomNumberSerivce();
+	static RandomNumberService randService = new DefaultRandomNumberSerivce();
 	
 	/**
 	 * 
@@ -397,6 +397,11 @@ public class TableBayesianNetworkUtil {
 	}
 	
 	
+	/**
+	 * Learn network weights from complete data
+	 * @param network
+	 * @param instances
+	 */
 	public static void computeMaximumLikelihoodEstimation(TableBayesianNetwork network, List<DiscreteInstance> instances) {
 		for(TableNode node : network.nodes()) {
 			Map<Row,Double> stats = node.cpd().computeSufficientStatisticsCompleteData(instances);
@@ -455,15 +460,43 @@ public class TableBayesianNetworkUtil {
 		}
 	}
 	
+	public static void randomizeNetworkWeights(TableBayesianNetwork network) {
+		for(TableNode node : network.nodes()) {
+			//for each node randomize the weights
+			TableConditionalProbabilityDistribution cpd = node.cpd();
+			for(Row row : cpd.getFactor().rows()) {
+				row.setValue(randService.getNextRandomNumber());
+			}
+			//renormalize
+			cpd.normalize();
+		}
+	}
 	
+	
+	/**
+	 * Learn network weights from missing data
+	 * @param network -- table Bayesian network to maximize likelihood for
+	 * @param instances -- training instances
+	 */
 	public static void expectationMaximizationAlgorithm(TableBayesianNetwork network, List<DiscreteInstance> instances) {
+		expectationMaximizationAlgorithm(network,instances,1000,0.001);
+	}
+	
+	/**
+	 * Learn network weights from missing data
+	 * @param network -- table Bayesian network to maximize likelihood for
+	 * @param instances -- training instances
+	 * @param maxIter -- maximum number of iteratations
+	 * @param minConvergence -- minimum convergence criteria
+	 */
+	public static void expectationMaximizationAlgorithm(TableBayesianNetwork network, List<DiscreteInstance> instances, int maxIter, double minConvergence) {
 		
 		double oldLikelihood = 0;
 		double currentLikelihood = 0;
 		
 		List<DiscreteVariable> eliminationOrder = greedyVariableEliminationOrder(network, new MinNeighborsEvaluationMetric<DiscreteVariable>());
 		
-		for(int i = 0; i < 1000; i++) {
+		for(int i = 0; i < maxIter; i++) {
 			
 			List<CliqueTree> trees = new LinkedList<CliqueTree>();
 			for(DiscreteInstance instance : instances) {
@@ -480,7 +513,7 @@ public class TableBayesianNetworkUtil {
 			}
 			
 			//check for convergence
-			if(i > 2 && oldLikelihood - currentLikelihood < 0.0001) {
+			if(i >= 2 && oldLikelihood - currentLikelihood < minConvergence) {
 				break;
 			}
 			

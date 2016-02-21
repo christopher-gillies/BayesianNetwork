@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.kidneyomics.bayes.example.StudentNetwork;
 import org.kidneyomics.graph.MinNeighborsEvaluationMetric;
 import org.kidneyomics.graph.UndirectedNode;
+import org.kidneyomics.random.DefaultRandomNumberSerivce;
 
 public class TableBayesianNetworkUtilTest {
 
@@ -491,6 +492,20 @@ public class TableBayesianNetworkUtilTest {
 		
 		assertEquals(res1Prob * res2Prob,doubleLikelihood,0.0001);
 		
+	}
+	
+	@Test
+	public void testRandomizeNetworkWeights() {
+		System.err.println("testCalculateLikelihood");
+		StudentNetwork network = StudentNetwork.create();
+		TableBayesianNetworkUtil.randService = new DefaultRandomNumberSerivce(0);
+		TableBayesianNetworkUtil.randomizeNetworkWeights(network);
+		DiscreteVariable diff = network.getVariableByName("Difficulty");
+		TableNode diffNode = network.getNode(diff);
+		assertNotEquals(0.6,diffNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).getValue(),0.01);
+		assertNotEquals(0.4,diffNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d1"))).getValue(),0.01);
+		
+		System.err.println(network);
 	}
 
 }
