@@ -9,15 +9,19 @@ import java.util.Set;
 public class DiscreteVariable implements Variable {
 	private final String name;
 	private final Map<String,DiscreteValue> values;
+	private final Map<String,DiscreteVariableValue> variableValues;
 	
 	private DiscreteVariable(String name, Set<DiscreteValue> values) {
 		this.name = name;
 		this.values = new HashMap<String,DiscreteValue>();
+		this.variableValues = new HashMap<String, DiscreteVariableValue>();
 		for(DiscreteValue value : values) {
 			if(this.values.containsKey(value.getName())) {
 				throw new RuntimeException("Duplicate name error");
 			}
 			this.values.put(value.getName(), value);
+			
+			this.variableValues.put(value.getName(), DiscreteVariableValue.create(this, value));
 		}
 	}
 	
@@ -43,8 +47,17 @@ public class DiscreteVariable implements Variable {
 		return name;
 	}
 	
+	public boolean hasValue(String name) {
+		return this.values.containsKey(name);
+	}
+	
+	
 	public DiscreteValue getValueByName(String name) {
 		return this.values.get(name);
+	}
+	
+	public DiscreteVariableValue getVariableValueByName(String name) {
+		return this.variableValues.get(name);
 	}
 	
 	public Collection<DiscreteValue> values() {

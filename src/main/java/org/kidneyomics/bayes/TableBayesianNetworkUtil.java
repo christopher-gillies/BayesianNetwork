@@ -443,6 +443,12 @@ public class TableBayesianNetworkUtil {
 		return likelihood(network, eliminationOrder, instances, logScale);
 	}
 	
+	/**
+	 * Compute the expected likelihood of the data
+	 * @param trees -- clique trees
+	 * @param logScale -- return in log scale
+	 * @return
+	 */
 	public static double likelihood(Collection<CliqueTree> trees, boolean logScale) {
 		double res = 0;
 		
@@ -479,7 +485,17 @@ public class TableBayesianNetworkUtil {
 	 * @param instances -- training instances
 	 */
 	public static void expectationMaximizationAlgorithm(TableBayesianNetwork network, List<DiscreteInstance> instances) {
-		expectationMaximizationAlgorithm(network,instances,1000,0.001);
+		expectationMaximizationAlgorithm(network,instances,1000,0.001, UniformPriorSufficientStatistics.create());
+	}
+	
+	/**
+	 * Learn network weights from missing data
+	 * @param network -- table Bayesian network to maximize likelihood for
+	 * @param instances -- training instances
+	 * @param prior -- the prior knowledge to add to the sufficient statistics
+	 */
+	public static void expectationMaximizationAlgorithm(TableBayesianNetwork network, List<DiscreteInstance> instances,PriorSufficientStatisitcs prior) {
+		expectationMaximizationAlgorithm(network,instances,1000,0.001, prior);
 	}
 	
 	/**
@@ -488,11 +504,13 @@ public class TableBayesianNetworkUtil {
 	 * @param instances -- training instances
 	 * @param maxIter -- maximum number of iteratations
 	 * @param minConvergence -- minimum convergence criteria
+	 * @param prior -- the prior knowledge to add to the sufficient statistics
 	 */
-	public static void expectationMaximizationAlgorithm(TableBayesianNetwork network, List<DiscreteInstance> instances, int maxIter, double minConvergence) {
+	public static void expectationMaximizationAlgorithm(TableBayesianNetwork network, List<DiscreteInstance> instances, int maxIter, double minConvergence, PriorSufficientStatisitcs prior) {
 		
-		double oldLikelihood = 0;
-		double currentLikelihood = 0;
+		
+		double oldLikelihood = Double.NEGATIVE_INFINITY;
+		double currentLikelihood = Double.NEGATIVE_INFINITY;
 		
 		List<DiscreteVariable> eliminationOrder = greedyVariableEliminationOrder(network, new MinNeighborsEvaluationMetric<DiscreteVariable>());
 		
@@ -507,19 +525,29 @@ public class TableBayesianNetworkUtil {
 			oldLikelihood = currentLikelihood;
 			currentLikelihood = likelihood(trees,true);
 			
+			System.err.println("Iteration: " + i);
+			System.err.println("Old likelihood: " + oldLikelihood);
+			System.err.println("Current log likelihood: " + currentLikelihood);
+			
 			//check for error state
-			if(oldLikelihood < currentLikelihood) {
-				throw new IllegalStateException("Error new likelihood > than old");
+			if(oldLikelihood > currentLikelihood) {
+				throw new IllegalStateException("Error new log likelihood > than old");
 			}
 			
 			//check for convergence
-			if(i >= 2 && oldLikelihood - currentLikelihood < minConvergence) {
+			if(i >= 2 && Math.abs(oldLikelihood - currentLikelihood) < minConvergence) {
 				break;
 			}
 			
 			//compute sufficient statistics
 			for(TableNode node : network.nodes()) {
 				Map<Row,Double> stats = node.cpd().computeSufficientStatisticsMissingData(trees);
+				
+				/*
+				 * add prior bias to results
+				 */
+				prior.addPrior(node, stats);
+				
 				node.cpd().maximumLikelihoodEstimation(stats);
 			}
 			

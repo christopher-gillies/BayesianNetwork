@@ -524,4 +524,10 @@ public class StudentNetworkExtended implements TableBayesianNetwork {
 	public TableNode getNode(DiscreteVariable variable) {
 		return nodeMap.get(variable);
 	}
+
+
+	@Override
+	public String name() {
+		return "Student Network Extendend";
+	}
 }

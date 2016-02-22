@@ -25,6 +25,7 @@ class CliqueTree {
 	private final HashMap<DiscreteVariable,List<TableFactor>> belifsPerVariable;
 	private final Set<DiscreteVariableValue> evidence = new HashSet<DiscreteVariableValue>();
 	private boolean calibrated = false;
+	
 	private CliqueTree(TableBayesianNetwork network) {
 		this.network = network;
 		this.belifsPerVariable = new HashMap<DiscreteVariable, List<TableFactor>>();
@@ -52,8 +53,10 @@ class CliqueTree {
 		CliqueTree tree = new CliqueTree(network);
 		tree.evidence.addAll(evidence);
 		
+		Set<TableFactor> factors = network.factors();
+		tree.reduceFactorsUsingEvidence(factors);
 		//add nodes to tree
-		TableBayesianNetworkUtil.sumProductVariableElimination(network.factors(), variableEliminationOrder, tree);
+		TableBayesianNetworkUtil.sumProductVariableElimination(factors, variableEliminationOrder, tree);
 		
 		
 		return tree;
@@ -122,13 +125,8 @@ class CliqueTree {
 		return true;
 	}
 	
-	/**
-	 * assign all the factors from the bayesian network to the clique tree
-	 */
-	void assignFactorsToNodesAndInitialize() {
-		Set<TableFactor> factors = network.factors();
-		Set<TableFactor> assignedFactors = new HashSet<TableFactor>();
-		
+	
+	void reduceFactorsUsingEvidence(Set<TableFactor> factors) {
 		if(this.evidence.size() > 0) {
 			//loop through evidence
 			
@@ -147,6 +145,17 @@ class CliqueTree {
 				factors.add(factor);
 			}
 		}
+	}
+	
+	/**
+	 * assign all the factors from the bayesian network to the clique tree
+	 */
+	void assignFactorsToNodesAndInitialize() {
+		Set<TableFactor> factors = network.factors();
+		Set<TableFactor> assignedFactors = new HashSet<TableFactor>();
+		
+
+		reduceFactorsUsingEvidence(factors);
 		
 		//clear factors from nodes
 		for(CliqueNode node : nodes) {
