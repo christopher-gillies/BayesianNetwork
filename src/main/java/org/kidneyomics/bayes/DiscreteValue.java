@@ -1,6 +1,6 @@
 package org.kidneyomics.bayes;
 
-public class DiscreteValue implements Value {
+public class DiscreteValue implements Value, Comparable<DiscreteValue> {
 	
 	private final String name;
 	private final boolean isMissing;
@@ -31,6 +31,11 @@ public class DiscreteValue implements Value {
 	@Override
 	public String toString() {
 		return this.name;
+	}
+
+	@Override
+	public int compareTo(DiscreteValue o) {
+		return this.getName().compareTo(o.getName());
 	}
 	
 }

@@ -1,0 +1,176 @@
+{
+  "name": "student network",
+  "nodes": [
+    {
+      "name": "Difficulty",
+      "parents": [],
+      "cpd": {
+        "columns": [
+          "d0",
+          "d1"
+        ],
+        "rows": [
+          {
+            "labels": [],
+            "values": [
+              0.6,
+              0.4
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Intelligence",
+      "parents": [],
+      "cpd": {
+        "columns": [
+          "i0",
+          "i1"
+        ],
+        "rows": [
+          {
+            "labels": [],
+            "values": [
+              0.7,
+              0.3
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "SAT",
+      "parents": [
+        "Intelligence"
+      ],
+      "cpd": {
+        "columns": [
+          "s0",
+          "s1"
+        ],
+        "rows": [
+          {
+            "labels": [
+              "i0"
+            ],
+            "values": [
+              0.95,
+              0.05000000000000001
+            ]
+          },
+          {
+            "labels": [
+              "i1"
+            ],
+            "values": [
+              0.2,
+              0.8
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Grade",
+      "parents": [
+        "Intelligence",
+        "Difficulty"
+      ],
+      "cpd": {
+        "columns": [
+          "g1",
+          "g2",
+          "g3"
+        ],
+        "rows": [
+          {
+            "labels": [
+              "i0",
+              "d0"
+            ],
+            "values": [
+              0.3,
+              0.4,
+              0.3
+            ]
+          },
+          {
+            "labels": [
+              "i1",
+              "d0"
+            ],
+            "values": [
+              0.9,
+              0.07999999999999999,
+              0.02
+            ]
+          },
+          {
+            "labels": [
+              "i0",
+              "d1"
+            ],
+            "values": [
+              0.05000000000000001,
+              0.25,
+              0.7
+            ]
+          },
+          {
+            "labels": [
+              "i1",
+              "d1"
+            ],
+            "values": [
+              0.5,
+              0.3,
+              0.2
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Letter",
+      "parents": [
+        "Grade"
+      ],
+      "cpd": {
+        "columns": [
+          "l0",
+          "l1"
+        ],
+        "rows": [
+          {
+            "labels": [
+              "g1"
+            ],
+            "values": [
+              0.10000000000000002,
+              0.9
+            ]
+          },
+          {
+            "labels": [
+              "g2"
+            ],
+            "values": [
+              0.4,
+              0.6
+            ]
+          },
+          {
+            "labels": [
+              "g3"
+            ],
+            "values": [
+              0.99,
+              0.010000000000000004
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

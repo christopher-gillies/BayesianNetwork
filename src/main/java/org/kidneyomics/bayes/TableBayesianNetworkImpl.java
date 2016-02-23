@@ -29,7 +29,6 @@ public class TableBayesianNetworkImpl implements TableBayesianNetwork {
 		this.nodes = new ArrayList<TableNode>();
 	}
 	
-
 	
 	public static TableBayesianNetworkImpl createFromJSON(JSON_TableBayesianNetwork jsonNetwork) {
 		TableBayesianNetworkImpl network = new TableBayesianNetworkImpl(jsonNetwork.name);

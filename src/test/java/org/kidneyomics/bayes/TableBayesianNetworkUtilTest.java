@@ -2,14 +2,26 @@ package org.kidneyomics.bayes;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
 import org.kidneyomics.bayes.example.StudentNetwork;
+import org.kidneyomics.bayes.json.JSON_CPD_Row;
+import org.kidneyomics.bayes.json.JSON_Node;
+import org.kidneyomics.bayes.json.JSON_TableBayesianNetwork;
 import org.kidneyomics.graph.MinNeighborsEvaluationMetric;
 import org.kidneyomics.graph.UndirectedNode;
 import org.kidneyomics.random.DefaultRandomNumberSerivce;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 
 public class TableBayesianNetworkUtilTest {
 
@@ -712,6 +724,89 @@ public class TableBayesianNetworkUtilTest {
 		assertEquals(0.01,letterNode.cpd().getFactor().getRowByValues(false, DiscreteVariableValue.create(letter, letter.getValueByName("l1")),
 				DiscreteVariableValue.create(grade, grade.getValueByName("g3"))).getValue(),maxDiff);
 		
+	}
+	
+	@Test
+	public void testToJson() throws JsonSyntaxException, JsonIOException, FileNotFoundException {
+		ClassLoader classLoader = getClass().getClassLoader();
+		
+		File file = new File(classLoader.getResource("student_network.json").getFile());
+		
+		
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		
+		JSON_TableBayesianNetwork jsonNetwork = gson.fromJson(new BufferedReader(new FileReader(file)), JSON_TableBayesianNetwork.class);
+		
+		System.err.println("Network json");
+		System.err.println(gson.toJson(jsonNetwork));
+		
+		TableBayesianNetworkImpl network = TableBayesianNetworkImpl.createFromJSON(jsonNetwork);
+		
+		System.err.println("Network json After");
+		JSON_TableBayesianNetwork newNetwork = TableBayesianNetworkUtil.toJSON(network);
+		System.err.println(gson.toJson(newNetwork));
+		
+		
+		assertEquals(5,newNetwork.nodes.size());
+		
+		JSON_Node diff = null;
+		JSON_Node letter = null;
+		for(JSON_Node node : newNetwork.nodes) {
+			if(node.name.equals("Difficulty")) {
+				diff = node;
+			} else if(node.name.equals("Letter")) {
+				letter = node;
+			}
+		}
+		
+		
+		{
+			assertEquals("Difficulty",diff.name);
+			assertEquals(2,diff.cpd.columns.size());
+			assertEquals(1,diff.cpd.rows.size());
+			
+			JSON_CPD_Row row = diff.cpd.rows.get(0);
+			assertEquals(0,row.labels.size());
+			assertEquals(2,row.values.size());
+			assertEquals(0.6,row.values.get(0),0.001);
+			assertEquals(0.4,row.values.get(1),0.001);
+		}
+		
+		{
+			assertEquals("Letter",letter.name);
+			assertEquals(2,letter.cpd.columns.size());
+			assertEquals(3,letter.cpd.rows.size());
+			
+			JSON_CPD_Row row = letter.cpd.rows.get(0);
+			assertEquals(1,row.labels.size());
+			assertEquals(2,row.values.size());
+			assertEquals(0.1,row.values.get(0),0.001);
+			assertEquals(0.9,row.values.get(1),0.001);
+		}
+		
+		{
+			assertEquals("Letter",letter.name);
+			assertEquals(2,letter.cpd.columns.size());
+			assertEquals(3,letter.cpd.rows.size());
+			
+			JSON_CPD_Row row = letter.cpd.rows.get(1);
+			assertEquals(1,row.labels.size());
+			assertEquals(2,row.values.size());
+			assertEquals(0.4,row.values.get(0),0.001);
+			assertEquals(0.6,row.values.get(1),0.001);
+		}
+		
+		{
+			assertEquals("Letter",letter.name);
+			assertEquals(2,letter.cpd.columns.size());
+			assertEquals(3,letter.cpd.rows.size());
+			
+			JSON_CPD_Row row = letter.cpd.rows.get(2);
+			assertEquals(1,row.labels.size());
+			assertEquals(2,row.values.size());
+			assertEquals(0.99,row.values.get(0),0.001);
+			assertEquals(0.01,row.values.get(1),0.001);
+		}
 	}
 
 }

@@ -4,19 +4,25 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.nio.channels.IllegalSelectorException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import org.kidneyomics.bayes.json.JSON_CPD;
+import org.kidneyomics.bayes.json.JSON_CPD_Row;
+import org.kidneyomics.bayes.json.JSON_Node;
+import org.kidneyomics.bayes.json.JSON_TableBayesianNetwork;
 import org.kidneyomics.graph.DirectedNode;
 import org.kidneyomics.graph.EvaluationMetric;
 import org.kidneyomics.graph.MinNeighborsEvaluationMetric;
 import org.kidneyomics.graph.UndirectedNode;
 import org.kidneyomics.random.DefaultRandomNumberSerivce;
 import org.kidneyomics.random.RandomNumberService;
+
+
 import org.kidneyomics.graph.TopologicalSorter;
 
 public class TableBayesianNetworkUtil {
@@ -554,5 +560,95 @@ public class TableBayesianNetworkUtil {
 			
 			
 		}
+	}
+	
+	private static DiscreteValue getValueByVariable(DiscreteVariable parent, Row row) {
+		for(DiscreteVariableValue varVal : row.variableValueSet()) {
+			if(varVal.variable().equals(parent)) {
+				return varVal.value();
+			}
+		}
+		
+		return null;
+	}
+	
+	
+	private static Row getFirstRowByVariableValue(DiscreteVariableValue variableValue, List<Row> rows) {
+		for(Row row : rows) {
+			if(row.hasDiscreteVariableValue(variableValue)) {
+				return row;
+			}
+		}
+		return null;
+	}
+	
+	public static JSON_TableBayesianNetwork toJSON(TableBayesianNetwork network) {
+		JSON_TableBayesianNetwork jsonNetwork = new JSON_TableBayesianNetwork();
+		jsonNetwork.name = network.name();
+		
+		for(TableNode tableNode : network.nodes()) {
+			JSON_Node jsonNode = new JSON_Node();
+			jsonNode.name = tableNode.name();
+			
+			//add parents
+			List<TableNode> parents = new ArrayList<TableNode>(tableNode.parents().size());
+			parents.addAll(tableNode.parents());
+			for(TableNode parNode : parents) {
+				jsonNode.parents.add(parNode.name());
+			}
+			
+			//create cpd
+			jsonNode.cpd = new JSON_CPD();
+			
+			//add columns
+			DiscreteVariable variable = tableNode.cpd().getUnconditionedVariable();
+			List<DiscreteValue> sortedValues = variable.valuesSorted();
+			for(DiscreteValue value : sortedValues) {
+				jsonNode.cpd.columns.add(value.getName());
+			}
+			
+			//add rows to json_cpd
+			HashMap<String,List<Row>> rowBucketByParentCombo = tableNode.cpd().createBucketsOfRows();
+			List<String> rowOrder = new ArrayList<String>(rowBucketByParentCombo.keySet().size());
+			rowOrder.addAll(rowBucketByParentCombo.keySet());
+			Collections.sort(rowOrder);
+			for(String rowId : rowOrder) {
+				List<Row> tableRows = rowBucketByParentCombo.get(rowId);
+				JSON_CPD_Row jsonRow = new JSON_CPD_Row();
+				
+				//add labels
+
+				//labels same order as parents
+				//since the rows are organized for a particular combination of parental values, each row will have the same parent values
+				//the unconditioned variable will have different values for each row organized by the rowId (combination of parent values)
+				for(TableNode parent : parents) {
+					DiscreteValue val = getValueByVariable(parent.variable(),tableRows.get(0));
+					if(val == null) {
+						throw new IllegalStateException(parent.variable() + " not found in " + tableRows.get(0) + " for node " + tableNode);
+					}
+					jsonRow.labels.add(val.getName());
+			
+				}
+				
+				//add values in same order as the columns
+				for(DiscreteValue var : sortedValues) {
+					DiscreteVariableValue varVal = variable.getVariableValueByName(var.getName());
+					Row row = getFirstRowByVariableValue(varVal,tableRows);
+					if(row == null) {
+						throw new IllegalStateException("No row found for "+ varVal + " in bucket " + rowId);
+					}
+					
+					jsonRow.values.add(row.getValue());
+				}
+				
+				// add json row to cpd
+				jsonNode.cpd.rows.add(jsonRow);
+			}
+			
+			//add jsonNode to json network
+			
+			jsonNetwork.nodes.add(jsonNode);
+		}
+		return jsonNetwork;
 	}
 }

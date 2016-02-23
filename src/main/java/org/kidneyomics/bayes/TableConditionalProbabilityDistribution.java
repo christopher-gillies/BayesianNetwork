@@ -149,7 +149,7 @@ public class TableConditionalProbabilityDistribution implements ProbabilityDistr
 	 * 
 	 * @return all the rows organized by the conditioned variables
 	 */
-	private HashMap<String,List<Row>> createBucketsOfRows() {
+	HashMap<String,List<Row>> createBucketsOfRows() {
 		HashSet<DiscreteVariable> conditioned = new HashSet<DiscreteVariable>();
 		
 		conditioned.addAll(table.scope());
