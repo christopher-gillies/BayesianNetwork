@@ -141,6 +141,23 @@ public class TableBayesianNetworkImpl implements TableBayesianNetwork {
 		}
 		
 		
+		//Create edges
+		for(JSON_Node node : jsonNetwork.nodes) {
+			DiscreteVariable var = network.stringToVariable.get(node.name);
+			TableNode tableNode = network.getNode(var);
+			
+			for(String parent : node.parents) {
+				DiscreteVariable parVar = network.stringToVariable.get(parent);
+				TableNode parNode = network.getNode(parVar);
+				
+				if(parVar == null || parNode == null) {
+					throw new IllegalStateException(parent + " variable not found");
+				}
+
+				tableNode.addParent(parNode);
+			}
+		}
+		
 		
 		return network;
 	}
@@ -173,20 +190,21 @@ public class TableBayesianNetworkImpl implements TableBayesianNetwork {
 
 	@Override
 	public Set<TableFactor> factors() {
-		// TODO Auto-generated method stub
-		return null;
+		HashSet<TableFactor> factors = new HashSet<TableFactor>();
+		for(TableNode node : nodes) {
+			factors.add(node.factor());
+		}
+		return factors;
 	}
 
 	@Override
 	public Set<DiscreteVariable> variables() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.nodesMap.keySet();
 	}
 
 	@Override
 	public TableNode getNode(DiscreteVariable variable) {
-		// TODO Auto-generated method stub
-		return null;
+		return this.nodesMap.get(variable);
 	}
 
 	@Override

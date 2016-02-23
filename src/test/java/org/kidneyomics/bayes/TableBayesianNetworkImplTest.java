@@ -39,18 +39,25 @@ public class TableBayesianNetworkImplTest {
 		DiscreteVariable diff = network.getVariableByName("Difficulty");
 		DiscreteVariable intel = network.getVariableByName("Intelligence");
 		DiscreteVariable letter = network.getVariableByName("Letter");
+		DiscreteVariable sat = network.getVariableByName("SAT");
+		
+		TableNode gradeNode = network.getNode(grade);
+		TableNode satNode = network.getNode(sat);
 		
 		TableNode diffNode = network.getNode(diff);
 		
-		assertEquals(0.6,diffNode.cpd().getFactor().getRowsByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d0"))).get(0).getValue(),0.0001);
-		assertEquals(0.4,diffNode.cpd().getFactor().getRowsByValues(false, DiscreteVariableValue.create(diff, diff.getValueByName("d1"))).get(0).getValue(),0.0001);
-		
+		assertEquals(0.6,diffNode.cpd().getFactor().getRowByValues(false, diff.getVariableValueByName("d0")).getValue(),0.0001);
+		assertEquals(0.4,diffNode.cpd().getFactor().getRowByValues(false, diff.getVariableValueByName("d1")).getValue(),0.0001);
+		assertEquals(1,diffNode.children().size());
+		assertEquals(gradeNode,diffNode.children().get(0));
 		
 		TableNode intelNode = network.getNode(intel);
 		
-		assertEquals(0.7,intelNode.cpd().getFactor().getRowsByValues(false, DiscreteVariableValue.create(intel, intel.getValueByName("i0"))).get(0).getValue(),0.0001);
-		assertEquals(0.3,intelNode.cpd().getFactor().getRowsByValues(false, DiscreteVariableValue.create(intel, intel.getValueByName("i1"))).get(0).getValue(),0.0001);
-		
+		assertEquals(0.7,intelNode.cpd().getFactor().getRowByValues(false, intel.getVariableValueByName("i0")).getValue(),0.0001);
+		assertEquals(0.3,intelNode.cpd().getFactor().getRowByValues(false, intel.getVariableValueByName("i1")).getValue(),0.0001);
+		assertEquals(2,intelNode.children().size());
+		assertTrue(intelNode.children().contains(gradeNode));
+		assertTrue(intelNode.children().contains(gradeNode));
 		
 	}
 
