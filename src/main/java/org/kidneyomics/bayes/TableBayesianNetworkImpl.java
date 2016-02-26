@@ -1,5 +1,6 @@
 package org.kidneyomics.bayes;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -209,6 +210,18 @@ public class TableBayesianNetworkImpl implements TableBayesianNetwork {
 	@Override
 	public String name() {
 		return name;
+	}
+
+
+	@Override
+	public JSON_TableBayesianNetwork toJSON() {
+		return TableBayesianNetworkUtil.toJSON(this);
+	}
+
+
+	@Override
+	public List<DiscreteInstance> forwardSample(int n) {
+		return TableBayesianNetworkUtil.forwardSampling(this, n);
 	}
 
 }

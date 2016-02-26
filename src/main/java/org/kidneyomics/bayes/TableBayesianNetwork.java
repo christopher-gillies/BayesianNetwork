@@ -1,7 +1,10 @@
 package org.kidneyomics.bayes;
 
+import java.io.File;
 import java.util.List;
 import java.util.Set;
+
+import org.kidneyomics.bayes.json.JSON_TableBayesianNetwork;
 
 public interface TableBayesianNetwork extends BayesianNetwork {
 	String name();
@@ -17,4 +20,8 @@ public interface TableBayesianNetwork extends BayesianNetwork {
 	TableNode getNode(DiscreteVariable variable);
 	
 	DiscreteVariable getVariableByName(String name);
+	
+	JSON_TableBayesianNetwork toJSON();
+	
+	List<DiscreteInstance> forwardSample(int n);
 }

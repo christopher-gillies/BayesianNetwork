@@ -326,6 +326,12 @@ public class TableBayesianNetworkUtil {
 		return sb.toString();
 	}
 	
+	/**
+	 * 
+	 * @param network -- table Bayesian network
+	 * @param sortedList -- topologically sorted nodes from the Bayesian network
+	 * @return a DiscreteInstance from this bayesian network
+	 */
 	public static DiscreteInstance forwardSample(TableBayesianNetwork network, List<TableNode> sortedList) {
 		
 		DiscreteInstance instance = DiscreteInstance.create();

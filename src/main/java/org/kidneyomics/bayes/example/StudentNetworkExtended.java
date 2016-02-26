@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.kidneyomics.bayes.BayesianNetwork;
+import org.kidneyomics.bayes.DiscreteInstance;
 import org.kidneyomics.bayes.TableBayesianNetworkUtil;
 import org.kidneyomics.bayes.DiscreteValue;
 import org.kidneyomics.bayes.DiscreteVariable;
@@ -17,6 +18,7 @@ import org.kidneyomics.bayes.TableBayesianNetwork;
 import org.kidneyomics.bayes.TableFactor;
 import org.kidneyomics.bayes.TableNode;
 import org.kidneyomics.bayes.TableProbabilityDistribution;
+import org.kidneyomics.bayes.json.JSON_TableBayesianNetwork;
 import org.kidneyomics.graph.TopologicalSorter;
 
 /**
@@ -525,9 +527,19 @@ public class StudentNetworkExtended implements TableBayesianNetwork {
 		return nodeMap.get(variable);
 	}
 
+	@Override
+	public JSON_TableBayesianNetwork toJSON() {
+		return TableBayesianNetworkUtil.toJSON(this);
+	}
 
 	@Override
 	public String name() {
 		return "Student Network Extendend";
 	}
+	
+	@Override
+	public List<DiscreteInstance> forwardSample(int n) {
+		return TableBayesianNetworkUtil.forwardSampling(this, n);
+	}
+
 }
