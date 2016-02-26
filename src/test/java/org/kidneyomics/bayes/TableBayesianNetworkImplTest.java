@@ -61,4 +61,10 @@ public class TableBayesianNetworkImplTest {
 		
 	}
 
+	
+	@Test
+	//TODO: do more tests on learning
+	public void testLearning() {
+		
+	}
 }
