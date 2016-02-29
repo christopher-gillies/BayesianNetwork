@@ -81,6 +81,37 @@ public class TableConditionalProbabilityDistribution implements ProbabilityDistr
 			
 	}
 	
+	/**
+	 * 
+	 * @return a map of the parameters for each row of the CPD
+	 */
+	public Map<Row,Double> getParameters() {
+		
+		Map<Row,Double> parameters = new HashMap<Row,Double>();
+		
+		//get values
+		for(Row row : table.rows()) {
+			parameters.put(row, row.getValue());
+		}
+		
+		return parameters;
+	}
+	
+	/**
+	 * Set the values of each row with the following parameters
+	 * @param parameters
+	 */
+	public void setParameters(Map<Row,Double> parameters) {
+		
+		//set values
+		for(Row row : table.rows()) {
+			if(parameters.containsKey(row)) {
+				row.setValue(parameters.get(row));
+			}
+		}
+		
+		
+	}
 	
 	public Map<Row,Double> computeSufficientStatisticsMissingData(Collection<CliqueTree> trees) {
 		

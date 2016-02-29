@@ -1,6 +1,6 @@
 package org.kidneyomics.bayes;
 
-public class DiscreteVariableValue implements VariableValue<DiscreteVariable,DiscreteValue>, Comparable<DiscreteVariableValue> {
+public class DiscreteVariableValue implements VariableValue<DiscreteVariable,DiscreteValue>, Comparable<DiscreteVariableValue>, Cloneable {
 	
 	private final DiscreteVariable variable;
 	private final DiscreteValue value;
@@ -61,5 +61,10 @@ public class DiscreteVariableValue implements VariableValue<DiscreteVariable,Dis
 	public int compareTo(DiscreteVariableValue o) {
 		DiscreteVariableValue varVal = (DiscreteVariableValue) o;
 		return this.key.compareTo(varVal.getKey());
+	}
+	
+	@Override
+	public Object clone() {
+		return create(this.variable(),this.value());
 	}
 }

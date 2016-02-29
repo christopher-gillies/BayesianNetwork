@@ -497,7 +497,7 @@ public class TableBayesianNetworkUtil {
 	 * @param instances -- training instances
 	 */
 	public static void expectationMaximizationAlgorithm(TableBayesianNetwork network, List<DiscreteInstance> instances) {
-		expectationMaximizationAlgorithm(network,instances,1000,0.001, UniformPriorSufficientStatistics.create());
+		expectationMaximizationAlgorithm(network,instances,100,0.5, UniformPriorSufficientStatistics.create());
 	}
 	
 	/**
@@ -507,7 +507,7 @@ public class TableBayesianNetworkUtil {
 	 * @param prior -- the prior knowledge to add to the sufficient statistics
 	 */
 	public static void expectationMaximizationAlgorithm(TableBayesianNetwork network, List<DiscreteInstance> instances,PriorSufficientStatisitcs prior) {
-		expectationMaximizationAlgorithm(network,instances,1000,0.001, prior);
+		expectationMaximizationAlgorithm(network,instances,100,0.5, prior);
 	}
 	
 	/**
@@ -542,7 +542,7 @@ public class TableBayesianNetworkUtil {
 			System.err.println("Current log likelihood: " + currentLikelihood);
 			
 			//check for error state
-			if(oldLikelihood > currentLikelihood) {
+			if(oldLikelihood - currentLikelihood > 0.001) {
 				throw new IllegalStateException("Error new log likelihood > than old");
 			}
 			

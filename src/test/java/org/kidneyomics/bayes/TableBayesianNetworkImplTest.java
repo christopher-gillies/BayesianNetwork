@@ -6,6 +6,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.Test;
 import org.kidneyomics.bayes.json.JSON_TableBayesianNetwork;
@@ -63,8 +66,116 @@ public class TableBayesianNetworkImplTest {
 
 	
 	@Test
-	//TODO: do more tests on learning
-	public void testLearning() {
+	public void testLearning() throws JsonSyntaxException, JsonIOException, FileNotFoundException {
+		ClassLoader classLoader = getClass().getClassLoader();
+		
+		File file = new File(classLoader.getResource("student_network.json").getFile());
+		TableBayesianNetworkImpl studentNetwork = TableBayesianNetworkImpl.createFromJSONFile(file);
+		
+		
+		List<DiscreteInstance> sampleComplete = studentNetwork.forwardSample(500);
+		List<DiscreteInstance> sampleMissing = new LinkedList<DiscreteInstance>();
+
+		//clone data
+		for(DiscreteInstance instance : sampleComplete) {
+			sampleMissing.add( (DiscreteInstance) instance.clone());
+		}
+		
+		
+		TableBayesianNetworkImpl studentNetworkML = TableBayesianNetworkImpl.createFromJSONFile(file);
+		
+		studentNetworkML.learnFromCompleteData(sampleComplete);
+
+		
+		//set some missing data
+		{
+			DiscreteVariable grade = studentNetwork.getVariableByName("Grade");
+			DiscreteVariable diff = studentNetwork.getVariableByName("Difficulty");
+			DiscreteVariable intel = studentNetwork.getVariableByName("Intelligence");
+			DiscreteVariable letter = studentNetwork.getVariableByName("Letter");
+			DiscreteVariable sat = studentNetwork.getVariableByName("SAT");
+			
+			int i = 0;
+			int j = 0;
+			for(DiscreteInstance instance : sampleMissing) {
+				//if(i++ % 10 != 0) {
+					j++;
+					instance.put(diff, DiscreteVariableValue.create(diff, DiscreteValue.createMissing()));
+				//}
+				
+			}
+			System.err.println("Fraction missing difficulty: " + j);
+		}
+		
+
+		
+		File file2 = new File(classLoader.getResource("student_network_em_start.json").getFile());
+		TableBayesianNetworkImpl studentNetworkGuess = TableBayesianNetworkImpl.createFromJSONFile(file2);
+		
+		studentNetworkGuess.learnFromMissingData(sampleMissing);
+		
+		System.err.println(studentNetworkGuess);
+		
+		System.err.println("True log-likelihood complete data: " + studentNetwork.logLikelihood(sampleComplete));
+		System.err.println("True log-likelihood missing data: " + studentNetwork.logLikelihood(sampleMissing));
+		System.err.println("ML log-likelihood complete data: " + studentNetworkML.logLikelihood(sampleComplete));
+		System.err.println("ML log-likelihood missing data: " + studentNetworkML.logLikelihood(sampleMissing));
+		System.err.println("Fit log-likelihood complete data: " + studentNetworkGuess.logLikelihood(sampleComplete));
+		System.err.println("Fit log-likelihood missing data: " + studentNetworkGuess.logLikelihood(sampleMissing));
+	}
+	
+	@Test
+	public void testLearningFromRandom() throws JsonSyntaxException, JsonIOException, FileNotFoundException {
+		ClassLoader classLoader = getClass().getClassLoader();
+		
+		File file = new File(classLoader.getResource("student_network.json").getFile());
+		TableBayesianNetworkImpl studentNetwork = TableBayesianNetworkImpl.createFromJSONFile(file);
+		
+		List<DiscreteInstance> sampleComplete = studentNetwork.forwardSample(1000);
+		List<DiscreteInstance> sampleMissing = new LinkedList<DiscreteInstance>();
+
+		//clone data
+		for(DiscreteInstance instance : sampleComplete) {
+			sampleMissing.add( (DiscreteInstance) instance.clone());
+		}
+		
+		
+		TableBayesianNetworkImpl studentNetworkML = TableBayesianNetworkImpl.createFromJSONFile(file);
+		
+		studentNetworkML.learnFromCompleteData(sampleComplete);
+		
+		{
+			DiscreteVariable grade = studentNetwork.getVariableByName("Grade");
+			DiscreteVariable diff = studentNetwork.getVariableByName("Difficulty");
+			DiscreteVariable intel = studentNetwork.getVariableByName("Intelligence");
+			DiscreteVariable letter = studentNetwork.getVariableByName("Letter");
+			DiscreteVariable sat = studentNetwork.getVariableByName("SAT");
+			
+			int i = 0;
+			int j = 0;
+			for(DiscreteInstance instance : sampleMissing) {
+				if(i++ % 10 != 0) {
+					j++;
+					instance.put(diff, DiscreteVariableValue.create(diff, DiscreteValue.createMissing()));
+				}
+				
+			}
+			System.err.println("Fraction missing difficulty: " + j);
+		}
+		
+		File file2 = new File(classLoader.getResource("student_network_em_start.json").getFile());
+		TableBayesianNetworkImpl studentNetworkGuess = TableBayesianNetworkImpl.createFromJSONFile(file2);
+		
+		studentNetworkGuess.learnFromMissingData(sampleMissing, 20);
+		
+		System.err.println(studentNetworkGuess);
+		
+		System.err.println("True log-likelihood complete data: " + studentNetwork.logLikelihood(sampleComplete));
+		System.err.println("True log-likelihood missing data: " + studentNetwork.logLikelihood(sampleMissing));
+		System.err.println("ML log-likelihood complete data: " + studentNetworkML.logLikelihood(sampleComplete));
+		System.err.println("ML log-likelihood missing data: " + studentNetworkML.logLikelihood(sampleMissing));
+		System.err.println("Fit log-likelihood complete data: " + studentNetworkGuess.logLikelihood(sampleComplete));
+		System.err.println("Fit log-likelihood missing data: " + studentNetworkGuess.logLikelihood(sampleMissing));
 		
 	}
 }

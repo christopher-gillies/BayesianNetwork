@@ -542,4 +542,14 @@ public class StudentNetworkExtended implements TableBayesianNetwork {
 		return TableBayesianNetworkUtil.forwardSampling(this, n);
 	}
 
+	@Override
+	public void learnFromCompleteData(List<DiscreteInstance> instances) {
+		TableBayesianNetworkUtil.computeMaximumLikelihoodEstimation(this, instances);
+	}
+
+
+	@Override
+	public void learnFromMissingData(List<DiscreteInstance> instances) {
+		TableBayesianNetworkUtil.expectationMaximizationAlgorithm(this, instances);
+	}
 }

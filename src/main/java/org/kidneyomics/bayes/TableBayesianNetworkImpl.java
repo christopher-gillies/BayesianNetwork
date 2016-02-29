@@ -1,6 +1,9 @@
 package org.kidneyomics.bayes;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,10 +16,14 @@ import org.kidneyomics.bayes.json.JSON_CPD_Row;
 import org.kidneyomics.bayes.json.JSON_Node;
 import org.kidneyomics.bayes.json.JSON_TableBayesianNetwork;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+
 public class TableBayesianNetworkImpl implements TableBayesianNetwork {
 
 	private final List<TableNode> nodes;
-	
 	private final String name;
 	
 	//variable reference ---> table node
@@ -30,6 +37,24 @@ public class TableBayesianNetworkImpl implements TableBayesianNetwork {
 		this.nodes = new ArrayList<TableNode>();
 	}
 	
+	
+	public static TableBayesianNetworkImpl createFromJSONFile(File in) {
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		JSON_TableBayesianNetwork studentNetworkJson = null;
+		try {
+			studentNetworkJson = gson.fromJson(new BufferedReader(new FileReader(in)), JSON_TableBayesianNetwork.class);
+		} catch (JsonSyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonIOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return createFromJSON(studentNetworkJson);
+	}
 	
 	public static TableBayesianNetworkImpl createFromJSON(JSON_TableBayesianNetwork jsonNetwork) {
 		TableBayesianNetworkImpl network = new TableBayesianNetworkImpl(jsonNetwork.name);
@@ -223,5 +248,62 @@ public class TableBayesianNetworkImpl implements TableBayesianNetwork {
 	public List<DiscreteInstance> forwardSample(int n) {
 		return TableBayesianNetworkUtil.forwardSampling(this, n);
 	}
+
+
+	@Override
+	public void learnFromCompleteData(List<DiscreteInstance> instances) {
+		TableBayesianNetworkUtil.computeMaximumLikelihoodEstimation(this, instances);
+	}
+
+
+	@Override
+	public void learnFromMissingData(List<DiscreteInstance> instances) {
+		TableBayesianNetworkUtil.expectationMaximizationAlgorithm(this, instances);
+	}
+	
+	
+	public double logLikelihood(List<DiscreteInstance> instances) {
+		return TableBayesianNetworkUtil.likelihood(this, instances, true);
+	}
+
+	public void learnFromMissingData(List<DiscreteInstance> instances, int numberOfRandomStarts) {
+		
+		double max = Double.NEGATIVE_INFINITY;
+		EMRunStatistic best = null;
+		for(int i = 0; i < numberOfRandomStarts; i++) {
+			System.err.println("Random EM run number: " + (i + 1));
+			//Randomize weights
+			TableBayesianNetworkUtil.randomizeNetworkWeights(this);
+			//run em
+			learnFromMissingData(instances);
+			//get statistics
+			EMRunStatistic run = new EMRunStatistic();
+			run.number = i;
+			run.logLikelihood = logLikelihood(instances);
+			for(TableNode node : nodes) {
+				run.networkParameters.put(node, node.cpd().getParameters());
+			}
+			
+			if(run.logLikelihood > max) {
+				best = run;
+				max = run.logLikelihood;
+			}
+		}
+		
+		//set the best parameters
+		for(TableNode node : nodes) {
+			node.cpd().setParameters(best.networkParameters.get(node));
+		}
+		
+		System.err.println("Best log likelihood: " + best.logLikelihood);
+	}
+	
+	private class EMRunStatistic {
+		double logLikelihood;
+		Map<TableNode,Map<Row,Double>> networkParameters = new HashMap<TableNode, Map<Row,Double>>();
+		int number = 0;
+	}
+	
+	
 
 }

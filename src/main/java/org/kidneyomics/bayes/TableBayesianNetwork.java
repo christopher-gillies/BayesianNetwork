@@ -24,4 +24,7 @@ public interface TableBayesianNetwork extends BayesianNetwork {
 	JSON_TableBayesianNetwork toJSON();
 	
 	List<DiscreteInstance> forwardSample(int n);
+	
+	void learnFromCompleteData(List<DiscreteInstance> instances);
+	void learnFromMissingData(List<DiscreteInstance> instances);
 }

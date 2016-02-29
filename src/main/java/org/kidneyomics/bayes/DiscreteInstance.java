@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DiscreteInstance {
+public class DiscreteInstance implements Cloneable {
 	private final Map<DiscreteVariable,DiscreteVariableValue> values;
 	//private final Set<DiscreteVariableValue> valuesSet;
 	
@@ -122,6 +122,13 @@ public class DiscreteInstance {
 		return sb.toString();
 	}
 	
-	
+	@Override
+	public Object clone() {
+		DiscreteInstance instance = create();
+		for(DiscreteVariable key : this.values.keySet()) {
+			instance.put(key, (DiscreteVariableValue) this.get(key).clone());
+		}
+		return instance;
+	}
 	
 }
