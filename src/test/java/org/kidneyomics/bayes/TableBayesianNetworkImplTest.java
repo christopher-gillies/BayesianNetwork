@@ -71,9 +71,12 @@ public class TableBayesianNetworkImplTest {
 		
 		File file = new File(classLoader.getResource("student_network.json").getFile());
 		TableBayesianNetworkImpl studentNetwork = TableBayesianNetworkImpl.createFromJSONFile(file);
+		TableBayesianNetworkImpl studentNetworkML = TableBayesianNetworkImpl.createFromJSONFile(file);
 		
+		File file2 = new File(classLoader.getResource("student_network_em_start.json").getFile());
+		TableBayesianNetworkImpl studentNetworkGuess = TableBayesianNetworkImpl.createFromJSONFile(file2);
 		
-		List<DiscreteInstance> sampleComplete = studentNetwork.forwardSample(500);
+		List<DiscreteInstance> sampleComplete = studentNetwork.forwardSample(250);
 		List<DiscreteInstance> sampleMissing = new LinkedList<DiscreteInstance>();
 
 		//clone data
@@ -82,7 +85,7 @@ public class TableBayesianNetworkImplTest {
 		}
 		
 		
-		TableBayesianNetworkImpl studentNetworkML = TableBayesianNetworkImpl.createFromJSONFile(file);
+		
 		
 		studentNetworkML.learnFromCompleteData(sampleComplete);
 
@@ -109,8 +112,7 @@ public class TableBayesianNetworkImplTest {
 		
 
 		
-		File file2 = new File(classLoader.getResource("student_network_em_start.json").getFile());
-		TableBayesianNetworkImpl studentNetworkGuess = TableBayesianNetworkImpl.createFromJSONFile(file2);
+
 		
 		studentNetworkGuess.learnFromMissingData(sampleMissing);
 		
